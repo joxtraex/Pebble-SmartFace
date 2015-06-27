@@ -1,0 +1,48 @@
+{
+    "appKeys": {},
+    "capabilities": [
+        ""
+    ],
+    "companyName": "grakovne@yandex.ru",
+    "longName": "SmartFace",
+    "projectType": "native",
+    "resources": {
+        "media": [
+            {
+                "characterRegex": "[ -~]",
+                "file": "fonts/imagine_font.ttf",
+                "name": "IMAGINE_TIME_36",
+                "type": "font"
+            },
+            {
+                "characterRegex": "[ -~]",
+                "file": "fonts/imagine_font.ttf",
+                "name": "IMAGINE_TIME_18",
+                "type": "font"
+            },
+            {
+                "characterRegex": "[ -~]",
+                "file": "fonts/imagine_font.ttf",
+                "name": "IMAGINE_TIME_12",
+                "type": "font"
+            },
+            {
+                "characterRegex": "[ -~]",
+                "file": "fonts/imagine_font.ttf",
+                "name": "IMAGINE_TIME_14",
+                "type": "font"
+            }
+        ]
+    },
+    "sdkVersion": "3",
+    "shortName": "SmartFace",
+    "targetPlatforms": [
+        "aplite",
+        "basalt"
+    ],
+    "uuid": "55ff601c-2ac2-482d-ba73-342f77bcd648",
+    "versionLabel": "1.0",
+    "watchapp": {
+        "watchface": true
+    }
+}
