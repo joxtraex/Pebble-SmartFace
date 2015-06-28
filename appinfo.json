@@ -1,13 +1,33 @@
 {
     "appKeys": {},
     "capabilities": [
-        ""
+        "configurable"
     ],
     "companyName": "grakovne@yandex.ru",
     "longName": "SmartFace",
     "projectType": "native",
     "resources": {
         "media": [
+            {
+                "file": "images/Bluetooth.png",
+                "name": "BT_ICON",
+                "type": "png"
+            },
+            {
+                "file": "images/Battery.png",
+                "name": "BAT_ICON",
+                "type": "png"
+            },
+            {
+                "file": "images/cloud-bw.png",
+                "name": "CLOUD",
+                "type": "png"
+            },
+            {
+                "file": "images/panda.png",
+                "name": "PANDA",
+                "type": "png"
+            },
             {
                 "characterRegex": "[ -~]",
                 "file": "fonts/imagine_font.ttf",
@@ -37,8 +57,7 @@
     "sdkVersion": "3",
     "shortName": "SmartFace",
     "targetPlatforms": [
-        "aplite",
-        "basalt"
+        "aplite"
     ],
     "uuid": "55ff601c-2ac2-482d-ba73-342f77bcd648",
     "versionLabel": "1.0",
