@@ -1,5 +1,7 @@
 {
-    "appKeys": {},
+    "appKeys": {
+        "CURRENT_WEATHER": 0
+    },
     "capabilities": [
         "configurable"
     ],
