@@ -11,23 +11,13 @@
     "resources": {
         "media": [
             {
+                "file": "images/battery_100.png",
+                "name": "BAT_ICON_100",
+                "type": "png"
+            },
+            {
                 "file": "images/Bluetooth.png",
                 "name": "BT_ICON",
-                "type": "png"
-            },
-            {
-                "file": "images/Battery.png",
-                "name": "BAT_ICON",
-                "type": "png"
-            },
-            {
-                "file": "images/cloud-bw.png",
-                "name": "CLOUD",
-                "type": "png"
-            },
-            {
-                "file": "images/panda.png",
-                "name": "PANDA",
                 "type": "png"
             },
             {
