@@ -8,6 +8,8 @@ TextLayer *Date_Text;
 TextLayer *CWeather_Text;
 TextLayer *Battery_Text;
 TextLayer *Connection_Text;
+TextLayer *WeatherTime_Text;
+
 
 BitmapLayer *BT_Image;
 BitmapLayer *BAT_Image;
@@ -22,13 +24,29 @@ GFont CWeather_Font;
 
 int JustRun_Flag = 1;
 
-AppTimer *BatteryUpdate_Timer;
+time_t now;
+struct tm *current_time;
 
 static char Time[] = "00:00";
 static char Date[]="26.06.1996";
 static char Week[]="wednesday";
+static char UpdTime[] = "00:00:00";
 
-char Buffer [32];
+static char Buffer [32];
+
+static const uint32_t Battery_Icons[] = {
+	RESOURCE_ID_BAT_ICON_0, 
+	RESOURCE_ID_BAT_ICON_10, 
+	RESOURCE_ID_BAT_ICON_20, 
+	RESOURCE_ID_BAT_ICON_30, 
+	RESOURCE_ID_BAT_ICON_40, 
+	RESOURCE_ID_BAT_ICON_50, 
+	RESOURCE_ID_BAT_ICON_60, 
+	RESOURCE_ID_BAT_ICON_70, 
+	RESOURCE_ID_BAT_ICON_80, 
+	RESOURCE_ID_BAT_ICON_90, 
+	RESOURCE_ID_BAT_ICON_100
+	};
 
 enum {
 	CURRENT_WEATHER = 0,
@@ -48,7 +66,7 @@ struct {
 
 void GetSettings(){
 	Settings.Verbose = 1;
-	Settings.Weather_Update_Period = 60*30*1000;
+	Settings.Weather_Update_Period = 60 * 30 * 1000;
 	Settings.Hourly_Vibe = 1;
 	Settings.BT_Vibe = 1;
 	strcpy(Settings.City, "Omsk");
@@ -61,6 +79,11 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 	strcpy(string_value, t->value->cstring);
 	snprintf(Buffer, sizeof(Buffer), "%s", string_value);
  	text_layer_set_text(CWeather_Text, Buffer); 
+	
+	now = time(NULL);
+    current_time = localtime(&now);
+	strftime(UpdTime, sizeof(UpdTime), "%T", current_time);
+	text_layer_set_text(WeatherTime_Text, UpdTime);
 	
 	if (Settings.Verbose)
 		APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Weather was updated!");
@@ -127,11 +150,15 @@ static void UpdateBattery(BatteryChargeState State){
 	static char Percents[] = "100%";
 	snprintf(Percents, sizeof(Percents), "%d%%", State.charge_percent);
 	text_layer_set_text(Battery_Text, Percents);
+	
+	gbitmap_destroy(BAT); 
+	BAT = gbitmap_create_with_resource(Battery_Icons[State.charge_percent / 10]); 
+	bitmap_layer_set_bitmap(BAT_Image, BAT); 
 }
 
 static void BatteryTimer(){
 	UpdateBattery(battery_state_service_peek());
-	BatteryUpdate_Timer = app_timer_register(3600000, BatteryTimer, 0);
+	app_timer_register(1800000, BatteryTimer, 0);
 	
 	if (Settings.Verbose)
 		APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Battery state was updated!");
@@ -147,19 +174,21 @@ static void UpdateTime(struct tm* CurrentTime, TimeUnits units_changed){
 	strftime(Week, sizeof(Week), "%A", CurrentTime);
 	text_layer_set_text(Week_Text, Week);
 	
-	if (CurrentTime -> tm_min == 0)
+	if ( (CurrentTime -> tm_min == 0) && (!JustRun_Flag) )
 		vibes_double_pulse();
 }
 
 int main(void) {
 	handle_init();
 	
-	time_t now = time(NULL);
-    struct tm *current_time = localtime(&now);
+	now = time(NULL);
+    current_time = localtime(&now);
     UpdateTime(current_time, SECOND_UNIT);
 	
 	UpdateConnection(bluetooth_connection_service_peek());
 	BatteryTimer();
+	
+	UpdateWeather();
 	
 	tick_timer_service_subscribe(MINUTE_UNIT, &UpdateTime);
 	battery_state_service_subscribe(UpdateBattery);

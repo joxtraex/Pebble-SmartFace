@@ -23,6 +23,11 @@ function Update_Weather(){
   
 	var state = json.weather[0].main;
 
+	if (state == "Thunderstorm")
+		state = "Storm";
+	if (state == "Atmosphere")
+		state = "Smoke";
+	
 	/*Sending All data to Pebble*/
 	CurrentWeather = state + ', ' + sign + temperature + "C";
 	
