@@ -1,6 +1,12 @@
 {
     "appKeys": {
-        "CURRENT_WEATHER": 0
+        "BATTERY_PERCENTS_VISIBILITY": 5,
+        "BT_STATE_VISIBILITY": 6,
+        "BT_VIBE": 3,
+        "CURRENT_WEATHER": 0,
+        "HOURLY_VIBE": 2,
+        "LOCATION": 1,
+        "WEATHER_UPDATES_FREQUENCY": 4
     },
     "capabilities": [
         "configurable"
@@ -10,6 +16,46 @@
     "projectType": "native",
     "resources": {
         "media": [
+            {
+                "file": "images/cloudy.png",
+                "name": "WEATHER_CLOUDY",
+                "type": "png"
+            },
+            {
+                "file": "images/windy.png",
+                "name": "WEATHER_WINDY",
+                "type": "png"
+            },
+            {
+                "file": "images/sunny.png",
+                "name": "WEATHER_SUNNY",
+                "type": "png"
+            },
+            {
+                "file": "images/storm.png",
+                "name": "WEATHER_STORM",
+                "type": "png"
+            },
+            {
+                "file": "images/snowy.png",
+                "name": "WEATHER_SNOWY",
+                "type": "png"
+            },
+            {
+                "file": "images/rainy.png",
+                "name": "WEATHER_RAINY",
+                "type": "png"
+            },
+            {
+                "file": "images/partlysunny.png",
+                "name": "WEATHER_PARTLYSUNNY",
+                "type": "png"
+            },
+            {
+                "file": "images/error.png",
+                "name": "WEATHER_ERROR",
+                "type": "png"
+            },
             {
                 "file": "images/battery_0.png",
                 "name": "BAT_ICON_0",
