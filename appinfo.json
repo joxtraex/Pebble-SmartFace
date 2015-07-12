@@ -1,7 +1,5 @@
 {
     "appKeys": {
-        "BATTERY_PERCENTS_VISIBILITY": 5,
-        "BT_STATE_VISIBILITY": 6,
         "BT_VIBE": 3,
         "CURRENT_WEATHER": 0,
         "HOURLY_VIBE": 2,

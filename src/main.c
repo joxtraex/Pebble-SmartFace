@@ -12,7 +12,6 @@ TextLayer *Battery_Text;
 TextLayer *Connection_Text;
 TextLayer *WeatherTime_Text;
 
-
 BitmapLayer *BT_Image;
 BitmapLayer *BAT_Image;
 
@@ -34,9 +33,19 @@ static char Date[] = "26.06.1996";
 static char Week[] = "wednesday";
 static char UpdTime[] = "00:00:00";
 
-char Buffer [32];
-char Buffer_0 [32];
-char Buffer_1 [32];
+char Buffer_Weather [15];
+char Buffer_Up_String [15];
+char Buffer_Down_String [15];
+
+static void Process_Received_Data(DictionaryIterator *iter, void *context);
+void handle_init(void);
+void handle_deinit(void);
+void send_int(uint8_t key, uint8_t cmd);
+void UpdateWeather();
+static void UpdateConnection(bool Connected);
+static void UpdateBattery(BatteryChargeState State);
+static void BatteryTimer();
+static void UpdateTime(struct tm* CurrentTime, TimeUnits units_changed);
 
 static const uint32_t Battery_Icons[] = {
 	RESOURCE_ID_BAT_ICON_0, 
@@ -63,16 +72,16 @@ enum {
 };
 
 struct {
-	bool Verbose;
 	int Weather_Updates_Frequency;
 	char Location [32];
 	bool Hourly_Vibe;
 	bool BT_Vibe;
-	bool Battery_Percents_Visibility;
-	bool BT_State_Visibility;
+	bool Verbose;
+
 } Settings;
 
 static void Process_Received_Data(DictionaryIterator *iter, void *context){
+	JustRun_Flag = 1;
 	Tuple *t = dict_read_first(iter);
 	 while(t != NULL){
 		int key = t->key;
@@ -81,8 +90,9 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 		strcpy(string_value, t->value->cstring);	 
 		 switch (key){
 			 case CURRENT_WEATHER:
-			 	snprintf(Buffer, sizeof(Buffer), "%s", string_value);
- 				text_layer_set_text(CWeather_Text, Buffer); 
+			 
+			 	snprintf(Buffer_Weather, sizeof(Buffer_Weather), "%s", string_value);
+ 				text_layer_set_text(CWeather_Text, Buffer_Weather); 
 			 	if (Settings.Verbose)
 					APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Weather was updated!");
 			 
@@ -123,35 +133,10 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 					APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Weather Refresh applied");
 				}
 			 
-			 	break;
-			 
-			 case BATTERY_PERSENTS_VISIBILITY:
-			 	Settings.Battery_Percents_Visibility = 1; // Plug. Will Used if need
-			 
-			 	if (Settings.Verbose){
-			 		if (value)
-						APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Battery percents is shown");
-			 		else
-						APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Battery percents is not shown");
-				}
-			 	
-				 break;
-			 
-			 case BT_STATE_VISIBILITY:
-			 	Settings.BT_State_Visibility = 1; // Plug. Will Used if need
-		
-			 	if (Settings.Verbose){
-			 		if (value)
-						APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Battery percents is shown");
-			 		else
-						APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Battery percents is not shown");
-				}	
-		 }
-		 
+		 }	 
         t = dict_read_next(iter);
-    }
-
-	
+    }	
+	JustRun_Flag = 0;
 }
 
 void handle_init(void) {
@@ -189,17 +174,18 @@ void send_int(uint8_t key, uint8_t cmd)
 		APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Data was sended!");
 }
 
-
 void UpdateWeather(){
 	if (Settings.Verbose)
 		APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Weather is updated");
 	
-	text_layer_set_text(CWeather_Text, "Updating...");
-	send_int(CURRENT_WEATHER, 1);
-	now = time(NULL);
-    current_time = localtime(&now);
-	strftime(Buffer_0, sizeof(Buffer_0), "%H:%M:%S", current_time);
-	text_layer_set_text(WeatherTime_Text, Buffer_0);
+	if (!bluetooth_connection_service_peek()){
+		text_layer_set_text(CWeather_Text, "");
+	}
+	else {
+		text_layer_set_text(CWeather_Text, "Updating...");
+		send_int(CURRENT_WEATHER, 1);
+	}
+	
 	app_timer_register(MILLS_IN_HOUR / Settings.Weather_Updates_Frequency, UpdateWeather, 0);
 }
 
@@ -252,7 +238,7 @@ int main(void) {
 	
 	 /*Just Debug message in console*/
 	Settings.Verbose = 1; 
-	
+	window_stack_push(MainWindow, true);
 	now = time(NULL);
     current_time = localtime(&now);
     UpdateTime(current_time, SECOND_UNIT);
@@ -266,10 +252,10 @@ int main(void) {
 	
 	
 	JustRun_Flag = 0;
-	send_int(CURRENT_WEATHER, 1);
-	UpdateWeather();
+
+	app_timer_register(MILLS_IN_HOUR / Settings.Weather_Updates_Frequency, UpdateWeather, 0);
 	
-	window_stack_push(MainWindow, true);
+	
 	if (Settings.Verbose)
 		APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: App running!");
 	

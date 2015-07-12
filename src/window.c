@@ -100,7 +100,7 @@ void BuildWindow(){
 	
 	/*Time of the last update for weather*/
 	
-	WeatherTime_Text = text_layer_create(GRect(0, 125, 144, 18));
+	WeatherTime_Text = text_layer_create(GRect(0, 122, 144, 18));
 	text_layer_set_text_color(WeatherTime_Text, GColorBlack);
 	text_layer_set_text_alignment(WeatherTime_Text, GTextAlignmentCenter);
 	text_layer_set_font(WeatherTime_Text, CWeather_Font);
