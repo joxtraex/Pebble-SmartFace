@@ -1,10 +1,11 @@
 {
     "appKeys": {
+        "ADD_INFO": 5,
         "BT_VIBE": 3,
         "CURRENT_WEATHER": 0,
         "HOURLY_VIBE": 2,
-        "LOCATION": 1,
-        "WEATHER_UPDATES_FREQUENCY": 4
+        "INFO_UPDATES_FREQUENCY": 4,
+        "LOCATION": 1
     },
     "capabilities": [
         "configurable"

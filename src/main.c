@@ -10,7 +10,7 @@ TextLayer *Date_Text;
 TextLayer *CWeather_Text;
 TextLayer *Battery_Text;
 TextLayer *Connection_Text;
-TextLayer *WeatherTime_Text;
+TextLayer *AddString_Text;
 
 BitmapLayer *BT_Image;
 BitmapLayer *BAT_Image;
@@ -31,11 +31,9 @@ struct tm *current_time;
 static char Time[] = "00:00";
 static char Date[] = "26.06.1996";
 static char Week[] = "wednesday";
-static char UpdTime[] = "00:00:00";
 
 char Buffer_Weather [15];
-char Buffer_Up_String [15];
-char Buffer_Down_String [15];
+char Buffer_Add_String [15];
 
 static void Process_Received_Data(DictionaryIterator *iter, void *context);
 void handle_init(void);
@@ -66,13 +64,12 @@ enum {
 	LOCATION = 1,
 	HOURLY_VIBE = 2,
 	BT_VIBE = 3,
-	WEATHER_UPDATES_FREQUENCY = 4,
-	BATTERY_PERSENTS_VISIBILITY = 5,
-	BT_STATE_VISIBILITY = 6
+	INFO_UPDATES_FREQUENCY = 4,
+	ADD_INFO = 5
 };
 
 struct {
-	int Weather_Updates_Frequency;
+	int Info_Updates_Frequency;
 	char Location [32];
 	bool Hourly_Vibe;
 	bool BT_Vibe;
@@ -97,6 +94,16 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 					APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Weather was updated!");
 			 
 			 	break; 
+			 
+			 case ADD_INFO:
+			 
+			 	snprintf(Buffer_Add_String, sizeof(Buffer_Add_String), "%s", string_value);
+ 				text_layer_set_text(AddString_Text, Buffer_Add_String); 
+			 	if (Settings.Verbose)
+					APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Additional info was updated!");
+			 
+			 	break;
+			 
 			 case LOCATION:
 			 	strcpy(Settings.Location, string_value);
 			 	if (Settings.Verbose){
@@ -127,10 +134,10 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 				}
 				 break;
 			 
-			 case WEATHER_UPDATES_FREQUENCY:
-			 	Settings.Weather_Updates_Frequency = value;
+			 case INFO_UPDATES_FREQUENCY:
+			 	Settings.Info_Updates_Frequency = value;
 		 		if (Settings.Verbose){
-					APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Weather Refresh applied");
+					APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Info Refresh applied");
 				}
 			 
 		 }	 
@@ -179,14 +186,16 @@ void UpdateWeather(){
 		APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Weather is updated");
 	
 	if (!bluetooth_connection_service_peek()){
-		text_layer_set_text(CWeather_Text, "");
+		text_layer_set_text(CWeather_Text, "OFFLINE");
 	}
 	else {
 		text_layer_set_text(CWeather_Text, "Updating...");
 		send_int(CURRENT_WEATHER, 1);
 	}
 	
-	app_timer_register(MILLS_IN_HOUR / Settings.Weather_Updates_Frequency, UpdateWeather, 0);
+	if (Settings.Info_Updates_Frequency)
+		app_timer_register(MILLS_IN_HOUR / Settings.Info_Updates_Frequency, UpdateWeather, 0);
+	else app_timer_register(MILLS_IN_HOUR, UpdateWeather, 0);
 }
 
 static void UpdateConnection(bool Connected){
@@ -237,7 +246,8 @@ int main(void) {
 	handle_init();
 	
 	 /*Just Debug message in console*/
-	Settings.Verbose = 1; 
+	Settings.Verbose = 1;
+	
 	window_stack_push(MainWindow, true);
 	now = time(NULL);
     current_time = localtime(&now);
@@ -253,7 +263,9 @@ int main(void) {
 	
 	JustRun_Flag = 0;
 
-	app_timer_register(MILLS_IN_HOUR / Settings.Weather_Updates_Frequency, UpdateWeather, 0);
+	if (Settings.Info_Updates_Frequency)
+		app_timer_register(MILLS_IN_HOUR / Settings.Info_Updates_Frequency, UpdateWeather, 0);
+	else app_timer_register(MILLS_IN_HOUR, UpdateWeather, 0);
 	
 	
 	if (Settings.Verbose)

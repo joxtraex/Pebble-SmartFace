@@ -8,7 +8,7 @@ extern TextLayer *Date_Text;
 extern TextLayer *Battery_Text;
 extern TextLayer *Connection_Text;
 extern TextLayer *CWeather_Text;
-extern TextLayer *WeatherTime_Text;
+extern TextLayer *AddString_Text;
 
 extern BitmapLayer *BT_Image;
 extern BitmapLayer *BAT_Image;
@@ -63,7 +63,7 @@ void BuildWindow(){
 	
 	/*Week Day Text*/
 	Date_Font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_IMAGINE_TIME_18));
-    Week_Text = text_layer_create(GRect(0, 38, 144, 30)); //20 40
+    Week_Text = text_layer_create(GRect(0, 32, 144, 30)); //20 40
 	text_layer_set_text_color(Week_Text, GColorBlack);
 	text_layer_set_background_color(Week_Text, GColorClear);
 	text_layer_set_text_alignment(Week_Text, GTextAlignmentCenter);
@@ -73,7 +73,7 @@ void BuildWindow(){
 	
 	/*Time Text*/
 	Time_Font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_IMAGINE_TIME_36));
-  	Time_Text = text_layer_create(GRect(0, 53, 144, 50)); //34
+  	Time_Text = text_layer_create(GRect(0, 47, 144, 50)); //34
 	text_layer_set_text_color(Time_Text, GColorBlack);
 	text_layer_set_background_color(Time_Text, GColorClear);
 	text_layer_set_text_alignment(Time_Text, GTextAlignmentCenter);
@@ -82,7 +82,7 @@ void BuildWindow(){
 	layer_add_child(window_get_root_layer(MainWindow), text_layer_get_layer(Time_Text));
 	
 	/*Date Text*/
-	Date_Text = text_layer_create(GRect(0, 93, 144, 25)); //75  95
+	Date_Text = text_layer_create(GRect(0, 88, 144, 25)); //75  95
 	text_layer_set_text_color(Date_Text, GColorBlack);
 	text_layer_set_text_alignment(Date_Text, GTextAlignmentCenter);
 	text_layer_set_font(Date_Text, Date_Font);
@@ -95,18 +95,17 @@ void BuildWindow(){
 	text_layer_set_text_color(CWeather_Text, GColorBlack);
 	text_layer_set_text_alignment(CWeather_Text, GTextAlignmentCenter);
 	text_layer_set_font(CWeather_Text, CWeather_Font);
-	text_layer_set_text(CWeather_Text, "LOADING...");
+	text_layer_set_text(CWeather_Text, "UPDATING...");
 	layer_add_child(window_get_root_layer(MainWindow), text_layer_get_layer(CWeather_Text));
+
+	/*Addiditonal String*/
 	
-	/*Time of the last update for weather*/
-	
-	WeatherTime_Text = text_layer_create(GRect(0, 122, 144, 18));
-	text_layer_set_text_color(WeatherTime_Text, GColorBlack);
-	text_layer_set_text_alignment(WeatherTime_Text, GTextAlignmentCenter);
-	text_layer_set_font(WeatherTime_Text, CWeather_Font);
-	layer_add_child(window_get_root_layer(MainWindow), text_layer_get_layer(WeatherTime_Text));
-	
-	
+	AddString_Text = text_layer_create(GRect(0, 129, 144, 18));
+	text_layer_set_text_color(AddString_Text, GColorBlack);
+	text_layer_set_text_alignment(AddString_Text, GTextAlignmentCenter);
+	text_layer_set_font(AddString_Text, CWeather_Font);
+	layer_add_child(window_get_root_layer(MainWindow), text_layer_get_layer(AddString_Text));
+	text_layer_set_text(AddString_Text, "EUR: 62.97 RUR");
 }
 
 void DestroyWindow(){
@@ -115,7 +114,6 @@ void DestroyWindow(){
 	text_layer_destroy(CWeather_Text);
 	text_layer_destroy(Battery_Text);
 	text_layer_destroy(Connection_Text);
-	text_layer_destroy(WeatherTime_Text);
 	gbitmap_destroy(BT); 
 	gbitmap_destroy(BAT); 
 	bitmap_layer_destroy(BT_Image);
