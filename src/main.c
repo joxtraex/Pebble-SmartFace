@@ -34,6 +34,7 @@ static char Week[] = "wednesday";
 
 char Buffer_Weather [15];
 char Buffer_Add_String [15];
+char Buffer_Temp[32];
 
 static void Process_Received_Data(DictionaryIterator *iter, void *context);
 void handle_init(void);
@@ -136,6 +137,10 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 			 
 			 case INFO_UPDATES_FREQUENCY:
 			 	Settings.Info_Updates_Frequency = value;
+			 	if (Settings.Info_Updates_Frequency < 10)
+					app_timer_register(MILLS_IN_HOUR / Settings.Info_Updates_Frequency, UpdateWeather, 0);
+				else app_timer_register(MILLS_IN_HOUR, UpdateWeather, 0);
+				 APP_LOG(APP_LOG_LEVEL_INFO, Buffer_Temp);
 		 		if (Settings.Verbose){
 					APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Info Refresh applied");
 				}
@@ -189,7 +194,6 @@ void UpdateWeather(){
 		text_layer_set_text(CWeather_Text, "OFFLINE");
 	}
 	else {
-		text_layer_set_text(CWeather_Text, "Updating...");
 		send_int(CURRENT_WEATHER, 1);
 	}
 	
@@ -263,11 +267,6 @@ int main(void) {
 	
 	JustRun_Flag = 0;
 
-	if (Settings.Info_Updates_Frequency)
-		app_timer_register(MILLS_IN_HOUR / Settings.Info_Updates_Frequency, UpdateWeather, 0);
-	else app_timer_register(MILLS_IN_HOUR, UpdateWeather, 0);
-	
-	
 	if (Settings.Verbose)
 		APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: App running!");
 	

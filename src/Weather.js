@@ -3,12 +3,14 @@ var Location = "Omsk";
 var Hourly_Vibe = "YES";
 var BT_Vibe = "YES";
 var Info_Updates_Frequency = 3;
+var Add_String = "Empty";
 
 var Verbose_key                     = 1;
 var Location_key                    = 2;
 var Hourly_Vibe_key                 = 3;
 var BT_Vibe_key                     = 4;
 var Info_Updates_Frequency_key      = 5;
+var Add_String_key                  = 6;
 
 function HTTPGET(url) {
     var req = new XMLHttpRequest();
@@ -23,6 +25,7 @@ function ReadSettings(){
 	Hourly_Vibe = localStorage.getItem(Hourly_Vibe_key);
 	BT_Vibe = localStorage.getItem(BT_Vibe_key);
 	Info_Updates_Frequency = localStorage.getItem(Info_Updates_Frequency_key);
+	Add_String = localStorage.getItem(Add_String_key);
 	
 	if (Verbose)
 		console.log('SmartFace [phone]: Location - ' + Location + '; Hourly vibration - ' + Hourly_Vibe + '; Info refresh - ' + Info_Updates_Frequency + '; BT vibration - ' + BT_Vibe);
@@ -60,8 +63,10 @@ function Update_Info(){
 	/*Sending All data to Pebble*/
 	CurrentWeather = state + ', ' + sign + temperature + "C";
 	
-	response = HTTPGET("http://grakovne.org/pebble/SmartFace/CustomStings/Curr_Time.php");
-	console.log(response);
+	if (Add_String != "Empty")
+		response = HTTPGET("http://grakovne.org/pebble/SmartFace/CustomStings/" + Add_String + ".php");
+	else
+		response  = "";
 	
 	var dict = {"CURRENT_WEATHER" : CurrentWeather, "ADD_INFO" : response};
 
@@ -77,7 +82,7 @@ Pebble.addEventListener("showConfiguration",
     if (Verbose)
 			console.log('SmartFace [phone]: Configuration is open');
   
-    Pebble.openURL("http://grakovne.org/pebble/SmartFace/AppConfig.php?Location=" + Location + "&Weather_Updates_Frequency=" + Info_Updates_Frequency + "&Hourly_Vibe=" + Hourly_Vibe + "&BT_Vibe=" + BT_Vibe);
+    Pebble.openURL("http://grakovne.org/pebble/SmartFace/AppConfig.php?Location=" + Location + "&Info_Updates_Frequency=" + Info_Updates_Frequency + "&Hourly_Vibe=" + Hourly_Vibe + "&BT_Vibe=" + BT_Vibe + "&Add_String=" + Add_String);
   }
 );
 
@@ -92,6 +97,8 @@ Pebble.addEventListener("webviewclosed",
 	localStorage.setItem(BT_Vibe_key, configuration.BT_Vibe);  
 	 
 	localStorage.setItem(Info_Updates_Frequency_key, configuration.Info_Updates_Frequency);
+  
+	localStorage.setItem(Add_String_key, configuration.Add_String); 
 	 
 	ReadSettings();
 	SendSettings();

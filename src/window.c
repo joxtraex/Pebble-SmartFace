@@ -16,9 +16,6 @@ extern BitmapLayer *BAT_Image;
 extern GBitmap *BT;
 extern GBitmap *BAT;
 
-extern BitmapLayer *Weather_Image[5];
-extern GBitmap *Weather[5];
-
 extern GFont Bar_Font;
 extern GFont Time_Font;
 extern GFont Date_Font;
@@ -105,7 +102,7 @@ void BuildWindow(){
 	text_layer_set_text_alignment(AddString_Text, GTextAlignmentCenter);
 	text_layer_set_font(AddString_Text, CWeather_Font);
 	layer_add_child(window_get_root_layer(MainWindow), text_layer_get_layer(AddString_Text));
-	text_layer_set_text(AddString_Text, "EUR: 62.97 RUR");
+	text_layer_set_text(AddString_Text, "");
 }
 
 void DestroyWindow(){
