@@ -4,6 +4,7 @@ var Hourly_Vibe = "YES";
 var BT_Vibe = "YES";
 var Info_Updates_Frequency = 3;
 var Add_String = "Empty";
+var Language = 0;
 
 var Verbose_key                     = 1;
 var Location_key                    = 2;
@@ -11,6 +12,7 @@ var Hourly_Vibe_key                 = 3;
 var BT_Vibe_key                     = 4;
 var Info_Updates_Frequency_key      = 5;
 var Add_String_key                  = 6;
+var Language_key                    = 7;
 
 function HTTPGET(url) {
     var req = new XMLHttpRequest();
@@ -26,16 +28,32 @@ function ReadSettings(){
 	BT_Vibe = localStorage.getItem(BT_Vibe_key);
 	Info_Updates_Frequency = localStorage.getItem(Info_Updates_Frequency_key);
 	Add_String = localStorage.getItem(Add_String_key);
+	Language = localStorage.getItem(Language_key);
 	
+	if (!Location)
+		Location = "London";
+	if (!Hourly_Vibe)
+		Hourly_Vibe = 1;
+	if (!BT_Vibe)
+		BT_Vibe = 1;
+	if (!Info_Updates_Frequency)
+		Info_Updates_Frequency = 1;
+	if (!Add_String)
+		Add_String = "Empty";
+	if (!Language)
+		Language = 0;
+
 	if (Verbose)
-		console.log('SmartFace [phone]: Location - ' + Location + '; Hourly vibration - ' + Hourly_Vibe + '; Info refresh - ' + Info_Updates_Frequency + '; BT vibration - ' + BT_Vibe);
+		console.log('SmartFace [phone]: Location - ' + Location + '; Hourly vibration - ' + Hourly_Vibe + '; Info refresh - ' + Info_Updates_Frequency + '; BT vibration - ' + BT_Vibe + '; Language - ' + Language);
 }
 
 function SendSettings(){
-	Pebble.sendAppMessage({'LOCATION': parseInt(Location),
+	
+	Pebble.sendAppMessage({'LOCATION': Location,
 							'HOURLY_VIBE': parseInt(Hourly_Vibe),
 							'BT_VIBE': parseInt(BT_Vibe),
-							'INFO_UPDATES_FREQUENCY': parseInt(Info_Updates_Frequency)
+							'INFO_UPDATES_FREQUENCY': parseInt(Info_Updates_Frequency),
+							'LANGUAGE' : parseInt(Language)
 							});
 }
 
@@ -60,6 +78,30 @@ function Update_Info(){
 	if (state == "Atmosphere")
 		state = "Smoke";
 	
+	if (Language == 1)
+		switch(state){
+			case "Storm":
+				state = "Гроза";
+				break;
+			case "Drizzle":
+				state = "Морось";
+				break;
+			case "Rain":
+				state = "Дождь";
+				break;
+			case "Snow":
+				state = "Снег";
+				break;
+			case "Smoke":
+				state = "Туман";
+				break;
+			case "Clouds":
+				state = "Облачно";
+				break;
+			case "Extreme":
+				state = "Шторм";
+		}
+	
 	/*Sending All data to Pebble*/
 	CurrentWeather = state + ', ' + sign + temperature + "C";
 	
@@ -82,7 +124,7 @@ Pebble.addEventListener("showConfiguration",
     if (Verbose)
 			console.log('SmartFace [phone]: Configuration is open');
   
-    Pebble.openURL("http://grakovne.org/pebble/SmartFace/AppConfig.php?Location=" + Location + "&Info_Updates_Frequency=" + Info_Updates_Frequency + "&Hourly_Vibe=" + Hourly_Vibe + "&BT_Vibe=" + BT_Vibe + "&Add_String=" + Add_String);
+    Pebble.openURL("http://grakovne.org/pebble/SmartFace/AppConfig.php?Location=" + Location + "&Info_Updates_Frequency=" + Info_Updates_Frequency + "&Hourly_Vibe=" + Hourly_Vibe + "&BT_Vibe=" + BT_Vibe + "&Add_String=" + Add_String + "&Language=" + Language);
   }
 );
 
@@ -99,6 +141,8 @@ Pebble.addEventListener("webviewclosed",
 	localStorage.setItem(Info_Updates_Frequency_key, configuration.Info_Updates_Frequency);
   
 	localStorage.setItem(Add_String_key, configuration.Add_String); 
+	
+	localStorage.setItem(Language_key, configuration.Language);
 	 
 	ReadSettings();
 	SendSettings();

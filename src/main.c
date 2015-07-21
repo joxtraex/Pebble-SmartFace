@@ -1,7 +1,14 @@
 #include <pebble.h>
 #include "window.h"
 
-#define MILLS_IN_HOUR 3600000
+#define MILLS_IN_HOUR               3600000
+#define Verbose_key                 1
+#define Location_key                2
+#define Hourly_Vibe_key             3
+#define BT_Vibe_key                 4
+#define Info_Updates_Frequency_key  5
+#define Add_String_key              6
+#define Language_key                7
 	
 Window *MainWindow;
 TextLayer *Time_Text;
@@ -32,8 +39,8 @@ static char Time[] = "00:00";
 static char Date[] = "26.06.1996";
 static char Week[] = "wednesday";
 
-char Buffer_Weather [15];
-char Buffer_Add_String [15];
+char Buffer_Weather [32];
+char Buffer_Add_String [32];
 char Buffer_Temp[32];
 
 static void Process_Received_Data(DictionaryIterator *iter, void *context);
@@ -45,6 +52,7 @@ static void UpdateConnection(bool Connected);
 static void UpdateBattery(BatteryChargeState State);
 static void BatteryTimer();
 static void UpdateTime(struct tm* CurrentTime, TimeUnits units_changed);
+void UpdateTime_Force(void);
 
 static const uint32_t Battery_Icons[] = {
 	RESOURCE_ID_BAT_ICON_0, 
@@ -60,13 +68,56 @@ static const uint32_t Battery_Icons[] = {
 	RESOURCE_ID_BAT_ICON_100
 	};
 
+static const uint32_t BT_Icons[] = {
+	RESOURCE_ID_NO_BT_ICON,
+	RESOURCE_ID_BT_ICON
+};
+
+static const char DayNames[2][7][32] = {
+	{
+		"SUNDAY",
+		"MONDAY",
+		"TUESDAY",
+		"WEDNESDAY",
+		"THURSDAY",
+		"FRIDAY",
+		"SATURDAY"
+	},
+	{
+		"ВОСКРЕСЕНЬЕ",
+		"ПОНЕДЕЛЬНИК",
+		"ВТОРНИК",
+		"СРЕДА",
+		"ЧЕТВЕРГ",
+		"ПЯТНИЦА",
+		"СУББОТА"
+	}
+};
+
+static const char OfflineNames[2][32] = {
+	"OFFLINE",
+	"НЕТ СЕТИ"
+};
+
+static const char BTNames[2][2][32] = {
+	{
+		"LOST",
+		"OK"
+	},
+	{
+		"НЕТ",
+		"ОК"
+	}
+};
+
 enum {
 	CURRENT_WEATHER = 0,
 	LOCATION = 1,
 	HOURLY_VIBE = 2,
 	BT_VIBE = 3,
 	INFO_UPDATES_FREQUENCY = 4,
-	ADD_INFO = 5
+	ADD_INFO = 5,
+	LANGUAGE = 6,
 };
 
 struct {
@@ -75,7 +126,7 @@ struct {
 	bool Hourly_Vibe;
 	bool BT_Vibe;
 	bool Verbose;
-
+	bool Language;
 } Settings;
 
 static void Process_Received_Data(DictionaryIterator *iter, void *context){
@@ -106,7 +157,9 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 			 	break;
 			 
 			 case LOCATION:
+			 	
 			 	strcpy(Settings.Location, string_value);
+			 	persist_write_string(Location_key, Settings.Location);
 			 	if (Settings.Verbose){
 					APP_LOG(APP_LOG_LEVEL_INFO, "Location changed");
 				}
@@ -114,7 +167,9 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 			 	break;
 			
 			 case HOURLY_VIBE:
+			 	
 			 	Settings.Hourly_Vibe = value;
+			 	persist_write_bool(Hourly_Vibe_key, Settings.Hourly_Vibe);
 			 	if (Settings.Verbose){
 			 		if (value)
 						APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Hourly vibration is enabled");
@@ -125,23 +180,40 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 			 	break;
 			 
 			 case BT_VIBE:
+			 	
 			 	Settings.BT_Vibe = value;
-			 
+				persist_write_bool(BT_Vibe_key, Settings.BT_Vibe);
 			 	if (Settings.Verbose){
 			 		if (value)
 						APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Bluetooth vibration is enabled");
 			 		else
 						APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Bluetooth vibration is disabled");
 				}
+			 
 				 break;
 			 
+			 case LANGUAGE:
+			 	
+			 	if (value < 2){
+				 	Settings.Language = value;
+					persist_write_bool(Language_key, Settings.Language);
+				}
+			 	UpdateTime_Force();
+			 	if (Settings.Verbose)
+					APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Language applied");
+			 
+			 	break;
+					
 			 case INFO_UPDATES_FREQUENCY:
+			 	
 			 	Settings.Info_Updates_Frequency = value;
+			 	persist_write_int(Info_Updates_Frequency_key, Settings.Info_Updates_Frequency);
 			 	if (Settings.Info_Updates_Frequency < 10)
 					app_timer_register(MILLS_IN_HOUR / Settings.Info_Updates_Frequency, UpdateWeather, 0);
 				else app_timer_register(MILLS_IN_HOUR, UpdateWeather, 0);
 				 APP_LOG(APP_LOG_LEVEL_INFO, Buffer_Temp);
-		 		if (Settings.Verbose){
+		 		
+			 	if (Settings.Verbose){
 					APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Info Refresh applied");
 				}
 			 
@@ -172,6 +244,30 @@ void handle_deinit(void) {
  	DestroyWindow();
 }
 
+void ReadSettings(){
+	Settings.Info_Updates_Frequency = 1;
+	Settings.Hourly_Vibe            = 1;
+	Settings.BT_Vibe                = 1;
+	Settings.Verbose                = 1;
+	Settings.Language               = 1;
+	strcpy(Settings.Location, "London");
+	
+	if (persist_exists(Location_key))
+		persist_read_string(Location_key, Settings.Location, sizeof(Settings.Location));
+	
+	if (persist_exists(Hourly_Vibe_key)) 
+		Settings.Hourly_Vibe = persist_read_int(Hourly_Vibe_key);
+
+	if (persist_exists(BT_Vibe_key)) 
+		Settings.BT_Vibe = persist_read_int(BT_Vibe_key);
+	
+	if (persist_exists(Info_Updates_Frequency_key)) 
+		Settings.Info_Updates_Frequency = persist_read_int(Info_Updates_Frequency_key);
+	
+	if (persist_exists(Language_key)) 
+		Settings.Language = persist_read_int(Language_key);
+}
+
 void send_int(uint8_t key, uint8_t cmd)
 {
     DictionaryIterator *iter;
@@ -191,7 +287,7 @@ void UpdateWeather(){
 		APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Weather is updated");
 	
 	if (!bluetooth_connection_service_peek()){
-		text_layer_set_text(CWeather_Text, "OFFLINE");
+		text_layer_set_text(CWeather_Text, OfflineNames[Settings.Language]);
 	}
 	else {
 		send_int(CURRENT_WEATHER, 1);
@@ -206,10 +302,15 @@ static void UpdateConnection(bool Connected){
 	if ( (!JustRun_Flag)&&(Settings.BT_Vibe) )
 		vibes_long_pulse();
 	
-	if (Connected)
-		text_layer_set_text(Connection_Text, "OK");
-	else
-		text_layer_set_text(Connection_Text, "LOST");
+	if (Connected){
+		UpdateWeather();
+	}
+	
+	gbitmap_destroy(BT); 
+	BT = gbitmap_create_with_resource(BT_Icons[Connected]); 
+	bitmap_layer_set_bitmap(BT_Image, BT);
+	
+	text_layer_set_text(Connection_Text, BTNames[Settings.Language][Connected]);
 	
 	if (Settings.Verbose)
 		APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: BT-Connection was updated!");
@@ -238,26 +339,30 @@ static void UpdateTime(struct tm* CurrentTime, TimeUnits units_changed){
 	
 	strftime(Date, sizeof(Date), "%d.%m.%Y", CurrentTime);
 	text_layer_set_text(Date_Text, Date);
-		
-	strftime(Week, sizeof(Week), "%A", CurrentTime);
-	text_layer_set_text(Week_Text, Week);
+
+	text_layer_set_text(Week_Text, DayNames[Settings.Language][CurrentTime->tm_wday]);
 	
 	if ( (CurrentTime -> tm_min == 0) && (!JustRun_Flag) && (Settings.Hourly_Vibe) )
 		vibes_double_pulse();
 }
 
-int main(void) {
-	handle_init();
-	
-	 /*Just Debug message in console*/
-	Settings.Verbose = 1;
-	
-	window_stack_push(MainWindow, true);
+void UpdateTime_Force(){
 	now = time(NULL);
     current_time = localtime(&now);
     UpdateTime(current_time, SECOND_UNIT);
+}
+
+int main(void) {
+	handle_init();
+	ReadSettings();
+	
+	UpdateTime_Force();
 	
 	UpdateConnection(bluetooth_connection_service_peek());
+	
+	if (!bluetooth_connection_service_peek())
+		text_layer_set_text(CWeather_Text, OfflineNames[Settings.Language]);
+	
 	BatteryTimer();
 	
 	tick_timer_service_subscribe(MINUTE_UNIT, &UpdateTime);
@@ -265,11 +370,13 @@ int main(void) {
 	bluetooth_connection_service_subscribe(UpdateConnection);
 	
 	
+	
 	JustRun_Flag = 0;
 
 	if (Settings.Verbose)
 		APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: App running!");
 	
+	window_stack_push(MainWindow, true);
   	app_event_loop();
   	handle_deinit();
 }
