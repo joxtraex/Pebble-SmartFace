@@ -41,7 +41,7 @@ function ReadSettings(){
 	if (!Add_String)
 		Add_String = "Empty";
 	if (!Language)
-		Language = 0;
+		Language = 1;
 
 	if (Verbose)
 		console.log('SmartFace [phone]: Location - ' + Location + '; Hourly vibration - ' + Hourly_Vibe + '; Info refresh - ' + Info_Updates_Frequency + '; BT vibration - ' + BT_Vibe + '; Language - ' + Language);
@@ -100,6 +100,9 @@ function Update_Info(){
 				break;
 			case "Extreme":
 				state = "Шторм";
+				break;
+			case "Clear":
+				state = "Ясно";
 		}
 	
 	/*Sending All data to Pebble*/

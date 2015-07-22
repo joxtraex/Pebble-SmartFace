@@ -2,6 +2,10 @@
 #include "window.h"
 
 #define MILLS_IN_HOUR               3600000
+	
+#define NON_INVERTED_WINDOW         0
+#define INVERTED_WINDOW             1
+
 #define Verbose_key                 1
 #define Location_key                2
 #define Hourly_Vibe_key             3
@@ -29,6 +33,8 @@ GFont Bar_Font;
 GFont Time_Font;
 GFont Date_Font;
 GFont CWeather_Font;
+
+
 
 int JustRun_Flag = 1;
 
@@ -354,6 +360,8 @@ void UpdateTime_Force(){
 
 int main(void) {
 	handle_init();
+	
+	SetColors(INVERTED_WINDOW);
 	ReadSettings();
 	
 	UpdateTime_Force();
@@ -369,14 +377,13 @@ int main(void) {
 	battery_state_service_subscribe(UpdateBattery);
 	bluetooth_connection_service_subscribe(UpdateConnection);
 	
-	
-	
 	JustRun_Flag = 0;
 
 	if (Settings.Verbose)
 		APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: App running!");
 	
 	window_stack_push(MainWindow, true);
+	
   	app_event_loop();
   	handle_deinit();
 }

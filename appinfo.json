@@ -24,7 +24,13 @@
             {
                 "characterRegex": "[ -~ \u0410-\u042f \u0430-\u044f]",
                 "file": "fonts/imagine_font.ttf",
-                "name": "IMAGINE_TIME_14",
+                "name": "IMAGINE_TIME_36",
+                "type": "font"
+            },
+            {
+                "characterRegex": "[ -~ \u0410-\u042f \u0430-\u044f]",
+                "file": "fonts/imagine_font.ttf",
+                "name": "IMAGINE_TIME_17",
                 "type": "font"
             },
             {
@@ -36,13 +42,7 @@
             {
                 "characterRegex": "[ -~ \u0410-\u042f \u0430-\u044f]",
                 "file": "fonts/imagine_font.ttf",
-                "name": "IMAGINE_TIME_18",
-                "type": "font"
-            },
-            {
-                "characterRegex": "[ -~ \u0410-\u042f \u0430-\u044f]",
-                "file": "fonts/imagine_font.ttf",
-                "name": "IMAGINE_TIME_36",
+                "name": "IMAGINE_TIME_14",
                 "type": "font"
             },
             {
