@@ -5,6 +5,7 @@
         "CURRENT_WEATHER": 0,
         "HOURLY_VIBE": 2,
         "INFO_UPDATES_FREQUENCY": 4,
+        "INVERTED": 7,
         "LANGUAGE": 6,
         "LOCATION": 1
     },

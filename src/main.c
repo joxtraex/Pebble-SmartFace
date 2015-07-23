@@ -5,6 +5,9 @@
 	
 #define NON_INVERTED_WINDOW         0
 #define INVERTED_WINDOW             1
+	
+#define ENGLISH_LANG                0
+#define RUSSIAN_LANG                1
 
 #define Verbose_key                 1
 #define Location_key                2
@@ -13,6 +16,7 @@
 #define Info_Updates_Frequency_key  5
 #define Add_String_key              6
 #define Language_key                7
+#define Inverted_key                8
 	
 Window *MainWindow;
 TextLayer *Time_Text;
@@ -43,7 +47,6 @@ struct tm *current_time;
 
 static char Time[] = "00:00";
 static char Date[] = "26.06.1996";
-static char Week[] = "wednesday";
 
 char Buffer_Weather [32];
 char Buffer_Add_String [32];
@@ -124,6 +127,7 @@ enum {
 	INFO_UPDATES_FREQUENCY = 4,
 	ADD_INFO = 5,
 	LANGUAGE = 6,
+	INVERTED = 7
 };
 
 struct {
@@ -133,6 +137,7 @@ struct {
 	bool BT_Vibe;
 	bool Verbose;
 	bool Language;
+	bool Inverted;
 } Settings;
 
 static void Process_Received_Data(DictionaryIterator *iter, void *context){
@@ -209,7 +214,19 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 					APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Language applied");
 			 
 			 	break;
-					
+				
+			 case INVERTED:
+			 	
+			 	if (value < 2){
+					Settings.Inverted = value;
+					persist_write_bool(Inverted_key, Settings.Inverted);
+				}
+			 	SetColors(Settings.Inverted);
+			 	if (Settings.Verbose)
+					APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Window color mode applied");
+			 
+			 	break;
+			 
 			 case INFO_UPDATES_FREQUENCY:
 			 	
 			 	Settings.Info_Updates_Frequency = value;
@@ -255,7 +272,8 @@ void ReadSettings(){
 	Settings.Hourly_Vibe            = 1;
 	Settings.BT_Vibe                = 1;
 	Settings.Verbose                = 1;
-	Settings.Language               = 1;
+	Settings.Language               = ENGLISH_LANG;
+	Settings.Inverted               = NON_INVERTED_WINDOW;
 	strcpy(Settings.Location, "London");
 	
 	if (persist_exists(Location_key))
@@ -272,6 +290,9 @@ void ReadSettings(){
 	
 	if (persist_exists(Language_key)) 
 		Settings.Language = persist_read_int(Language_key);
+	
+	if (persist_exists(Inverted_key)) 
+		Settings.Inverted = persist_read_int(Inverted_key);
 }
 
 void send_int(uint8_t key, uint8_t cmd)
@@ -308,9 +329,8 @@ static void UpdateConnection(bool Connected){
 	if ( (!JustRun_Flag)&&(Settings.BT_Vibe) )
 		vibes_long_pulse();
 	
-	if (Connected){
+	if (Connected)
 		UpdateWeather();
-	}
 	
 	gbitmap_destroy(BT); 
 	BT = gbitmap_create_with_resource(BT_Icons[Connected]); 
@@ -361,8 +381,8 @@ void UpdateTime_Force(){
 int main(void) {
 	handle_init();
 	
-	SetColors(INVERTED_WINDOW);
 	ReadSettings();
+	SetColors(Settings.Inverted);
 	
 	UpdateTime_Force();
 	
