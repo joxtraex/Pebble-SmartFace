@@ -2,7 +2,10 @@
     "appKeys": {
         "ADD_INFO": 5,
         "BT_VIBE": 3,
+        "CHARGE_VIBE": 8,
         "CURRENT_WEATHER": 0,
+        "HIDE_BATTERY": 9,
+        "HIDE_BT": 10,
         "HOURLY_VIBE": 2,
         "INFO_UPDATES_FREQUENCY": 4,
         "INVERTED": 7,
@@ -111,7 +114,8 @@
     "sdkVersion": "3",
     "shortName": "SmartFace",
     "targetPlatforms": [
-        "aplite"
+        "aplite",
+        "basalt"
     ],
     "uuid": "55ff601c-2ac2-482d-ba73-342f77bcd648",
     "versionLabel": "1.0",

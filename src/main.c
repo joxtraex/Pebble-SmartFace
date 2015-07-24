@@ -17,6 +17,9 @@
 #define Add_String_key              6
 #define Language_key                7
 #define Inverted_key                8
+#define Charge_Vibe_key             9
+#define Hide_Battery_key            10
+#define Hide_BT_key                 11
 	
 Window *MainWindow;
 TextLayer *Time_Text;
@@ -37,8 +40,6 @@ GFont Bar_Font;
 GFont Time_Font;
 GFont Date_Font;
 GFont CWeather_Font;
-
-
 
 int JustRun_Flag = 1;
 
@@ -120,14 +121,18 @@ static const char BTNames[2][2][32] = {
 };
 
 enum {
-	CURRENT_WEATHER = 0,
-	LOCATION = 1,
-	HOURLY_VIBE = 2,
-	BT_VIBE = 3,
-	INFO_UPDATES_FREQUENCY = 4,
-	ADD_INFO = 5,
-	LANGUAGE = 6,
-	INVERTED = 7
+	CURRENT_WEATHER          = 0,
+	LOCATION                 = 1,
+	HOURLY_VIBE              = 2,
+	BT_VIBE                  = 3,
+	INFO_UPDATES_FREQUENCY   = 4,
+	ADD_INFO                 = 5,
+	LANGUAGE                 = 6,
+	INVERTED                 = 7,
+	CHARGE_VIBE              = 8,
+	HIDE_BATTERY             = 9,
+	HIDE_BT                  = 10,
+	
 };
 
 struct {
@@ -135,9 +140,12 @@ struct {
 	char Location [32];
 	bool Hourly_Vibe;
 	bool BT_Vibe;
+	bool Charge_Vibe;
 	bool Verbose;
 	bool Language;
 	bool Inverted;
+	bool Hide_Battery;
+	bool Hide_BT;
 } Settings;
 
 static void Process_Received_Data(DictionaryIterator *iter, void *context){
@@ -227,6 +235,54 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 			 
 			 	break;
 			 
+			 case CHARGE_VIBE:
+			 	
+			 	if (value < 2){
+					Settings.Charge_Vibe = value;
+					persist_write_bool(Charge_Vibe_key, Settings.Charge_Vibe);
+				}
+			 
+			 	if (Settings.Verbose){
+					if (value)
+						APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Vibe on charge turned on");
+			 		else
+						APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Vibe on charge turned off");
+				}
+			 
+			 	break;
+			 
+			 case HIDE_BATTERY:
+			 	if (value < 2){
+					Settings.Hide_Battery = value;
+					persist_write_bool(Hide_Battery_key, Settings.Hide_Battery);
+					SetBarText(Settings.Hide_Battery, Settings.Hide_BT);
+					
+					if (Settings.Verbose){
+						if (!value)
+							APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Battery text shows");
+						else
+							APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Battery text hiding");
+					}
+				}
+			 	
+			 	break;
+			 
+			 case HIDE_BT:
+			 	if (value < 2){
+					Settings.Hide_BT = value;
+					persist_write_bool(Hide_BT_key, Settings.Hide_BT);
+					SetBarText(Settings.Hide_Battery, Settings.Hide_BT);
+					
+					if (Settings.Verbose){
+						if (!value)
+							APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: BT-state text shows");
+						else
+							APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: BT-state text hiding");
+					}
+				}
+			 	
+			 	break;
+			 
 			 case INFO_UPDATES_FREQUENCY:
 			 	
 			 	Settings.Info_Updates_Frequency = value;
@@ -245,6 +301,8 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
     }	
 	JustRun_Flag = 0;
 }
+
+
 
 void handle_init(void) {
 	BuildWindow();
@@ -272,6 +330,10 @@ void ReadSettings(){
 	Settings.Hourly_Vibe            = 1;
 	Settings.BT_Vibe                = 1;
 	Settings.Verbose                = 1;
+	Settings.Charge_Vibe            = 1;
+	Settings.Hide_Battery           = 0;
+	Settings.Hide_BT                = 0;
+	
 	Settings.Language               = ENGLISH_LANG;
 	Settings.Inverted               = NON_INVERTED_WINDOW;
 	strcpy(Settings.Location, "London");
@@ -293,6 +355,15 @@ void ReadSettings(){
 	
 	if (persist_exists(Inverted_key)) 
 		Settings.Inverted = persist_read_int(Inverted_key);
+	
+	if (persist_exists(Charge_Vibe_key)) 
+		Settings.Charge_Vibe = persist_read_int(Charge_Vibe_key);
+	
+	if (persist_exists(Hide_Battery_key)) 
+		Settings.Hide_Battery = persist_read_int(Hide_Battery_key);
+	
+	if (persist_exists(Hide_BT_key)) 
+		Settings.Hide_BT = persist_read_int(Hide_BT_key);
 }
 
 void send_int(uint8_t key, uint8_t cmd)
@@ -344,6 +415,18 @@ static void UpdateConnection(bool Connected){
 
 static void UpdateBattery(BatteryChargeState State){
 	static char Percents[] = "100%";
+	static int  Vibe_Flag;
+	
+	if ( (!Vibe_Flag) && (State.is_plugged) && (Settings.Charge_Vibe) ){
+		vibes_short_pulse();
+		Vibe_Flag = 1;
+	}
+	
+	if ( (Vibe_Flag) && (!State.is_plugged) && (Settings.Charge_Vibe) ) {
+		vibes_short_pulse();
+		Vibe_Flag = 0;
+	}
+	
 	snprintf(Percents, sizeof(Percents), "%d%%", State.charge_percent);
 	text_layer_set_text(Battery_Text, Percents);
 	gbitmap_destroy(BAT); 
@@ -381,8 +464,11 @@ void UpdateTime_Force(){
 int main(void) {
 	handle_init();
 	
+	JustRun_Flag = 1;
+	
 	ReadSettings();
 	SetColors(Settings.Inverted);
+	SetBarText(Settings.Hide_Battery, Settings.Hide_BT);
 	
 	UpdateTime_Force();
 	

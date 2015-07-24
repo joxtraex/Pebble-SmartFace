@@ -21,8 +21,8 @@ extern GFont Time_Font;
 extern GFont Date_Font;
 extern GFont CWeather_Font;
 
-GColor ForegroundColor = GColorWhite;
-GColor BackgroundColor = GColorBlack;
+GColor ForegroundColor; 
+GColor BackgroundColor;
 
 void SetColors (bool Invert){
 	
@@ -79,6 +79,7 @@ void BuildWindow(){
 	text_layer_set_font(Battery_Text, Bar_Font);
 	text_layer_set_text(Battery_Text, "100%");
 	layer_add_child(window_get_root_layer(MainWindow), text_layer_get_layer(Battery_Text));
+	layer_add_child(window_get_root_layer(MainWindow), text_layer_get_layer(Battery_Text));
 	
 	/*Bluetooth connection percent Text*/
   	Connection_Text = text_layer_create(GRect(17, 2, 124, 16));
@@ -125,8 +126,11 @@ void BuildWindow(){
 	text_layer_set_font(AddString_Text, CWeather_Font);
 	layer_add_child(window_get_root_layer(MainWindow), text_layer_get_layer(AddString_Text));
 	text_layer_set_text(AddString_Text, "");
-	
-	SetColors(0);
+}
+
+void SetBarText(bool Battery, bool BT){
+	layer_set_hidden((Layer *)Battery_Text, Battery);
+	layer_set_hidden((Layer *)Connection_Text, BT);
 }
 
 void DestroyWindow(){
