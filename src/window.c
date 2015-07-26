@@ -90,7 +90,7 @@ void BuildWindow(){
 	
 	/*Week Day Text*/
 	Date_Font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_IMAGINE_TIME_17));
-    Week_Text = text_layer_create(GRect(0, 34, 145, 30)); //20 40
+    Week_Text = text_layer_create(GRect(1, 34, 145, 30)); //20 40
 	text_layer_set_text_alignment(Week_Text, GTextAlignmentCenter);
 	text_layer_set_font(Week_Text, Date_Font);
 	text_layer_set_text(Week_Text, "");
@@ -98,14 +98,14 @@ void BuildWindow(){
 	
 	/*Time Text*/
 	Time_Font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_IMAGINE_TIME_36));
-  	Time_Text = text_layer_create(GRect(0, 47, 145, 50)); //34
+  	Time_Text = text_layer_create(GRect(1, 47, 145, 50)); //34
 	text_layer_set_text_alignment(Time_Text, GTextAlignmentCenter);
 	text_layer_set_font(Time_Text, Time_Font);
 	text_layer_set_text(Time_Text, "");
 	layer_add_child(window_get_root_layer(MainWindow), text_layer_get_layer(Time_Text));
 	
 	/*Date Text*/
-	Date_Text = text_layer_create(GRect(0, 88, 145, 25)); //75  95
+	Date_Text = text_layer_create(GRect(1, 88, 145, 25)); //75  95
 	text_layer_set_text_alignment(Date_Text, GTextAlignmentCenter);
 	text_layer_set_font(Date_Text, Date_Font);
 	text_layer_set_text(Date_Text, "");
@@ -113,15 +113,15 @@ void BuildWindow(){
 	
 	/*Current weather Text*/
 	CWeather_Font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_IMAGINE_TIME_14));
-	CWeather_Text = text_layer_create(GRect(0, 147, 145, 25)); //105
+	CWeather_Text = text_layer_create(GRect(1, 147, 145, 25)); //105
 	text_layer_set_text_alignment(CWeather_Text, GTextAlignmentCenter);
 	text_layer_set_font(CWeather_Text, CWeather_Font);
-	text_layer_set_text(CWeather_Text, "UPDATING...");
+	text_layer_set_text(CWeather_Text, " ");
 	layer_add_child(window_get_root_layer(MainWindow), text_layer_get_layer(CWeather_Text));
 
 	/*Addiditonal String*/
 	
-	AddString_Text = text_layer_create(GRect(0, 129, 145, 18));
+	AddString_Text = text_layer_create(GRect(1, 129, 145, 18));
 	text_layer_set_text_alignment(AddString_Text, GTextAlignmentCenter);
 	text_layer_set_font(AddString_Text, CWeather_Font);
 	layer_add_child(window_get_root_layer(MainWindow), text_layer_get_layer(AddString_Text));

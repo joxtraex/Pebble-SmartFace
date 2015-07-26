@@ -21,14 +21,60 @@
     "resources": {
         "media": [
             {
-                "file": "images/Bluetooth_NO.png",
-                "name": "NO_BT_ICON",
+                "file": "images/icon.png",
+                "menuIcon": true,
+                "name": "ICON",
+                "type": "png"
+            },
+            {
+                "file": "images/battery_10.png",
+                "name": "BAT_ICON_10",
+                "type": "png"
+            },
+            {
+                "file": "images/battery_30.png",
+                "name": "BAT_ICON_30",
+                "type": "png"
+            },
+            {
+                "file": "images/battery_70.png",
+                "name": "BAT_ICON_70",
+                "type": "png"
+            },
+            {
+                "file": "images/battery_20.png",
+                "name": "BAT_ICON_20",
+                "type": "png"
+            },
+            {
+                "file": "images/battery_90.png",
+                "name": "BAT_ICON_90",
+                "type": "png"
+            },
+            {
+                "file": "images/battery_60.png",
+                "name": "BAT_ICON_60",
+                "type": "png"
+            },
+            {
+                "file": "images/battery_40.png",
+                "name": "BAT_ICON_40",
+                "type": "png"
+            },
+            {
+                "file": "images/battery_80.png",
+                "name": "BAT_ICON_80",
+                "type": "png"
+            },
+            {
+                "file": "images/battery_0.png",
+                "name": "BAT_ICON_0",
                 "type": "png"
             },
             {
                 "characterRegex": "[ -~ \u0410-\u042f \u0430-\u044f]",
                 "file": "fonts/imagine_font.ttf",
-                "name": "IMAGINE_TIME_36",
+                "name": "IMAGINE_TIME_12",
                 "type": "font"
             },
             {
@@ -40,7 +86,7 @@
             {
                 "characterRegex": "[ -~ \u0410-\u042f \u0430-\u044f]",
                 "file": "fonts/imagine_font.ttf",
-                "name": "IMAGINE_TIME_12",
+                "name": "IMAGINE_TIME_36",
                 "type": "font"
             },
             {
@@ -48,6 +94,11 @@
                 "file": "fonts/imagine_font.ttf",
                 "name": "IMAGINE_TIME_14",
                 "type": "font"
+            },
+            {
+                "file": "images/Bluetooth_NO.png",
+                "name": "NO_BT_ICON",
+                "type": "png"
             },
             {
                 "file": "images/Bluetooth.png",
@@ -60,53 +111,8 @@
                 "type": "png"
             },
             {
-                "file": "images/battery_90.png",
-                "name": "BAT_ICON_90",
-                "type": "png"
-            },
-            {
-                "file": "images/battery_80.png",
-                "name": "BAT_ICON_80",
-                "type": "png"
-            },
-            {
-                "file": "images/battery_70.png",
-                "name": "BAT_ICON_70",
-                "type": "png"
-            },
-            {
-                "file": "images/battery_60.png",
-                "name": "BAT_ICON_60",
-                "type": "png"
-            },
-            {
                 "file": "images/battery_50.png",
                 "name": "BAT_ICON_50",
-                "type": "png"
-            },
-            {
-                "file": "images/battery_40.png",
-                "name": "BAT_ICON_40",
-                "type": "png"
-            },
-            {
-                "file": "images/battery_30.png",
-                "name": "BAT_ICON_30",
-                "type": "png"
-            },
-            {
-                "file": "images/battery_20.png",
-                "name": "BAT_ICON_20",
-                "type": "png"
-            },
-            {
-                "file": "images/battery_10.png",
-                "name": "BAT_ICON_10",
-                "type": "png"
-            },
-            {
-                "file": "images/battery_0.png",
-                "name": "BAT_ICON_0",
                 "type": "png"
             }
         ]
@@ -114,11 +120,10 @@
     "sdkVersion": "3",
     "shortName": "SmartFace",
     "targetPlatforms": [
-        "aplite",
-        "basalt"
+        "aplite"
     ],
     "uuid": "55ff601c-2ac2-482d-ba73-342f77bcd648",
-    "versionLabel": "1.0",
+    "versionLabel": "2.0",
     "watchapp": {
         "watchface": true
     }

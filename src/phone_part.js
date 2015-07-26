@@ -58,7 +58,7 @@ function ReadSettings(){
 	if (!Language)
 		Language = 0;
 	if (!Inverted)
-		Inverted = 1;
+		Inverted = 0;
 	if (!Hide_Weather)
 		Hide_Weather = 0;
 	if (!Charge_Vibe)
@@ -66,7 +66,7 @@ function ReadSettings(){
 	if (!Hide_Battery)
 		Hide_Battery = 0;
 	if (!Hide_BT)
-		Hide_BT = 1;
+		Hide_BT = 0;
 		
 	if (Verbose)
 		console.log('SmartFace [phone]: Location - ' + Location + '; Hourly vibration - ' + Hourly_Vibe + '; Info refresh - ' + Info_Updates_Frequency + '; BT vibration - ' + BT_Vibe + '; Language - ' + Language + '; Inverted - ' + Inverted + "; Hide Weather - " + Hide_Weather + "; Charging Vibe - " + Charge_Vibe + "; Hiding Battery text - " + Hide_Battery + "; Hiding BT-state text - " + Hide_BT);

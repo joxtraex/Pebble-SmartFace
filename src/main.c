@@ -417,12 +417,12 @@ static void UpdateBattery(BatteryChargeState State){
 	static char Percents[] = "100%";
 	static int  Vibe_Flag;
 	
-	if ( (!Vibe_Flag) && (State.is_plugged) && (Settings.Charge_Vibe) ){
+	if ( (!Vibe_Flag) && (State.is_plugged) && (Settings.Charge_Vibe) && (!JustRun_Flag)){
 		vibes_short_pulse();
 		Vibe_Flag = 1;
 	}
 	
-	if ( (Vibe_Flag) && (!State.is_plugged) && (Settings.Charge_Vibe) ) {
+	if ( (Vibe_Flag) && (!State.is_plugged) && (Settings.Charge_Vibe) && (!JustRun_Flag) ) {
 		vibes_short_pulse();
 		Vibe_Flag = 0;
 	}
@@ -464,12 +464,10 @@ void UpdateTime_Force(){
 int main(void) {
 	handle_init();
 	
-	JustRun_Flag = 1;
-	
 	ReadSettings();
 	SetColors(Settings.Inverted);
 	SetBarText(Settings.Hide_Battery, Settings.Hide_BT);
-	
+	JustRun_Flag = 1;
 	UpdateTime_Force();
 	
 	UpdateConnection(bluetooth_connection_service_peek());
