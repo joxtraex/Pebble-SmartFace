@@ -8,7 +8,7 @@ extern TextLayer *Date_Text;
 extern TextLayer *Battery_Text;
 extern TextLayer *Connection_Text;
 extern TextLayer *CWeather_Text;
-extern TextLayer *AddString_Text;
+extern TextLayer *AddInfo_Text;
 
 extern BitmapLayer *BT_Image;
 extern BitmapLayer *BAT_Image;
@@ -52,8 +52,8 @@ void SetColors (bool Invert){
 	text_layer_set_background_color(Date_Text, GColorClear);
 	text_layer_set_text_color(CWeather_Text, ForegroundColor);
 	text_layer_set_background_color(CWeather_Text, GColorClear);
-	text_layer_set_text_color(AddString_Text, ForegroundColor);
-	text_layer_set_background_color(AddString_Text, GColorClear);
+	text_layer_set_text_color(AddInfo_Text, ForegroundColor);
+	text_layer_set_background_color(AddInfo_Text, GColorClear);
 	
 }
 
@@ -97,8 +97,8 @@ void BuildWindow(){
 	layer_add_child(window_get_root_layer(MainWindow), text_layer_get_layer(Week_Text));
 	
 	/*Time Text*/
-	Time_Font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_IMAGINE_TIME_36));
-  	Time_Text = text_layer_create(GRect(1, 47, 145, 50)); //34
+	Time_Font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_IMAGINE_TIME_37));
+  	Time_Text = text_layer_create(GRect(1, 46, 145, 50)); //34
 	text_layer_set_text_alignment(Time_Text, GTextAlignmentCenter);
 	text_layer_set_font(Time_Text, Time_Font);
 	text_layer_set_text(Time_Text, "");
@@ -121,11 +121,11 @@ void BuildWindow(){
 
 	/*Addiditonal String*/
 	
-	AddString_Text = text_layer_create(GRect(1, 129, 145, 18));
-	text_layer_set_text_alignment(AddString_Text, GTextAlignmentCenter);
-	text_layer_set_font(AddString_Text, CWeather_Font);
-	layer_add_child(window_get_root_layer(MainWindow), text_layer_get_layer(AddString_Text));
-	text_layer_set_text(AddString_Text, "");
+	AddInfo_Text = text_layer_create(GRect(1, 129, 145, 18));
+	text_layer_set_text_alignment(AddInfo_Text, GTextAlignmentCenter);
+	text_layer_set_font(AddInfo_Text, CWeather_Font);
+	layer_add_child(window_get_root_layer(MainWindow), text_layer_get_layer(AddInfo_Text));
+	text_layer_set_text(AddInfo_Text, "");
 }
 
 void SetBarText(bool Battery, bool BT){
@@ -137,6 +137,7 @@ void DestroyWindow(){
 	text_layer_destroy(Time_Text);
 	text_layer_destroy(Week_Text);
 	text_layer_destroy(CWeather_Text);
+	text_layer_destroy(AddInfo_Text);
 	text_layer_destroy(Battery_Text);
 	text_layer_destroy(Connection_Text);
 	gbitmap_destroy(BT); 

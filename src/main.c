@@ -20,6 +20,9 @@
 #define Charge_Vibe_key             9
 #define Hide_Battery_key            10
 #define Hide_BT_key                 11
+#define Weather_Text_key            12
+#define AddInfo_Text_key            13
+	
 	
 Window *MainWindow;
 TextLayer *Time_Text;
@@ -28,7 +31,7 @@ TextLayer *Date_Text;
 TextLayer *CWeather_Text;
 TextLayer *Battery_Text;
 TextLayer *Connection_Text;
-TextLayer *AddString_Text;
+TextLayer *AddInfo_Text;
 
 BitmapLayer *BT_Image;
 BitmapLayer *BAT_Image;
@@ -116,7 +119,7 @@ static const char BTNames[2][2][32] = {
 	},
 	{
 		"НЕТ",
-		"ОК"
+		"OK"
 	}
 };
 
@@ -138,6 +141,8 @@ enum {
 struct {
 	int Info_Updates_Frequency;
 	char Location [32];
+	char Weather_Text [32];
+	char AddInfo_Text [32];
 	bool Hourly_Vibe;
 	bool BT_Vibe;
 	bool Charge_Vibe;
@@ -159,7 +164,9 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 		 switch (key){
 			 case CURRENT_WEATHER:
 			 
+			 	strcpy(Settings.Weather_Text, string_value);
 			 	snprintf(Buffer_Weather, sizeof(Buffer_Weather), "%s", string_value);
+			 	persist_write_string(Weather_Text_key, string_value);
  				text_layer_set_text(CWeather_Text, Buffer_Weather); 
 			 	if (Settings.Verbose)
 					APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Weather was updated!");
@@ -168,8 +175,10 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 			 
 			 case ADD_INFO:
 			 
+			 	strcpy(Settings.AddInfo_Text, string_value);
 			 	snprintf(Buffer_Add_String, sizeof(Buffer_Add_String), "%s", string_value);
- 				text_layer_set_text(AddString_Text, Buffer_Add_String); 
+			 	persist_write_string(AddInfo_Text_key, string_value);
+ 				text_layer_set_text(AddInfo_Text, Buffer_Add_String); 
 			 	if (Settings.Verbose)
 					APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Additional info was updated!");
 			 
@@ -337,9 +346,17 @@ void ReadSettings(){
 	Settings.Language               = ENGLISH_LANG;
 	Settings.Inverted               = NON_INVERTED_WINDOW;
 	strcpy(Settings.Location, "London");
+	strcpy(Settings.Weather_Text, " ");
+	strcpy(Settings.AddInfo_Text, " ");
 	
 	if (persist_exists(Location_key))
 		persist_read_string(Location_key, Settings.Location, sizeof(Settings.Location));
+	
+	if (persist_exists(Weather_Text_key))
+		persist_read_string(Weather_Text_key, Settings.Weather_Text, sizeof(Settings.Weather_Text));
+	
+	if (persist_exists(AddInfo_Text_key))
+		persist_read_string(AddInfo_Text_key, Settings.AddInfo_Text, sizeof(Settings.AddInfo_Text));
 	
 	if (persist_exists(Hourly_Vibe_key)) 
 		Settings.Hourly_Vibe = persist_read_int(Hourly_Vibe_key);
@@ -468,6 +485,13 @@ int main(void) {
 	SetColors(Settings.Inverted);
 	SetBarText(Settings.Hide_Battery, Settings.Hide_BT);
 	JustRun_Flag = 1;
+	
+	snprintf(Buffer_Add_String, sizeof(Buffer_Add_String), "%s", Settings.AddInfo_Text);
+ 	text_layer_set_text(AddInfo_Text, Buffer_Add_String); 
+	
+	snprintf(Buffer_Weather, sizeof(Buffer_Weather), "%s", Settings.Weather_Text);
+ 	text_layer_set_text(CWeather_Text, Buffer_Weather); 
+	
 	UpdateTime_Force();
 	
 	UpdateConnection(bluetooth_connection_service_peek());

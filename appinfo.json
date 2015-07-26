@@ -74,25 +74,25 @@
             {
                 "characterRegex": "[ -~ \u0410-\u042f \u0430-\u044f]",
                 "file": "fonts/imagine_font.ttf",
-                "name": "IMAGINE_TIME_12",
+                "name": "IMAGINE_TIME_14",
                 "type": "font"
             },
             {
-                "characterRegex": "[ -~ \u0410-\u042f \u0430-\u044f]",
+                "characterRegex": "[ 0-9:]",
+                "file": "fonts/imagine_font.ttf",
+                "name": "IMAGINE_TIME_37",
+                "type": "font"
+            },
+            {
+                "characterRegex": "[0-9.SUNDAYMOTEWHRFI\u0412\u041e\u0421\u041a\u0420\u0415\u041d\u042c\u041f\u0414\u041b\u0418\u0422\u0410\u0427\u0413\u042f\u0426\u0423\u0411]",
                 "file": "fonts/imagine_font.ttf",
                 "name": "IMAGINE_TIME_17",
                 "type": "font"
             },
             {
-                "characterRegex": "[ -~ \u0410-\u042f \u0430-\u044f]",
+                "characterRegex": "[0-9%OKLOST\u041d\u0415\u0422!]",
                 "file": "fonts/imagine_font.ttf",
-                "name": "IMAGINE_TIME_36",
-                "type": "font"
-            },
-            {
-                "characterRegex": "[ -~ \u0410-\u042f \u0430-\u044f]",
-                "file": "fonts/imagine_font.ttf",
-                "name": "IMAGINE_TIME_14",
+                "name": "IMAGINE_TIME_12",
                 "type": "font"
             },
             {
