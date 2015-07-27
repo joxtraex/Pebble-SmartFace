@@ -9,19 +9,18 @@
 #define ENGLISH_LANG                0
 #define RUSSIAN_LANG                1
 
-#define Verbose_key                 1
-#define Location_key                2
-#define Hourly_Vibe_key             3
-#define BT_Vibe_key                 4
-#define Info_Updates_Frequency_key  5
-#define Add_String_key              6
-#define Language_key                7
-#define Inverted_key                8
-#define Charge_Vibe_key             9
-#define Hide_Battery_key            10
-#define Hide_BT_key                 11
-#define Weather_Text_key            12
-#define AddInfo_Text_key            13
+#define Location_key                1
+#define Hourly_Vibe_key             2
+#define BT_Vibe_key                 3
+#define Info_Updates_Frequency_key  4
+#define Add_String_key              5
+#define Language_key                6
+#define Inverted_key                7
+#define Charge_Vibe_key             8
+#define Hide_Battery_key            9
+#define Hide_BT_key                 10
+#define Weather_Text_key            11
+#define AddInfo_Text_key            12
 	
 	
 Window *MainWindow;
@@ -44,7 +43,8 @@ GFont Time_Font;
 GFont Date_Font;
 GFont CWeather_Font;
 
-int JustRun_Flag = 1;
+bool JustRun_Flag = 1;
+bool IsConnected_Flag = 1;
 
 time_t now;
 struct tm *current_time;
@@ -54,18 +54,16 @@ static char Date[] = "26.06.1996";
 
 char Buffer_Weather [32];
 char Buffer_Add_String [32];
-char Buffer_Temp[32];
 
-static void Process_Received_Data(DictionaryIterator *iter, void *context);
-void handle_init(void);
-void handle_deinit(void);
-void send_int(uint8_t key, uint8_t cmd);
-void UpdateWeather();
-static void UpdateConnection(bool Connected);
-static void UpdateBattery(BatteryChargeState State);
-static void BatteryTimer();
-static void UpdateTime(struct tm* CurrentTime, TimeUnits units_changed);
-void UpdateTime_Force(void);
+static inline void Process_Received_Data(DictionaryIterator *iter, void *context);
+static inline void send_int(uint8_t key, uint8_t cmd);
+static inline void UpdateWeather();
+static inline void UpdateConnection(bool Connected);
+static inline void UpdateBattery(BatteryChargeState State);
+static inline void BatteryTimer();
+static inline void UpdateTime(struct tm* CurrentTime, TimeUnits units_changed);
+static inline void UpdateDate(struct tm* CurrentTime, TimeUnits units_changed);
+static inline void Init_Display(void);
 
 static const uint32_t Battery_Icons[] = {
 	RESOURCE_ID_BAT_ICON_0, 
@@ -135,18 +133,16 @@ enum {
 	CHARGE_VIBE              = 8,
 	HIDE_BATTERY             = 9,
 	HIDE_BT                  = 10,
-	
 };
 
 struct {
-	int Info_Updates_Frequency;
+	char Info_Updates_Frequency;
 	char Location [32];
 	char Weather_Text [32];
 	char AddInfo_Text [32];
 	bool Hourly_Vibe;
 	bool BT_Vibe;
 	bool Charge_Vibe;
-	bool Verbose;
 	bool Language;
 	bool Inverted;
 	bool Hide_Battery;
@@ -154,7 +150,6 @@ struct {
 } Settings;
 
 static void Process_Received_Data(DictionaryIterator *iter, void *context){
-	JustRun_Flag = 1;
 	Tuple *t = dict_read_first(iter);
 	 while(t != NULL){
 		int key = t->key;
@@ -168,8 +163,8 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 			 	snprintf(Buffer_Weather, sizeof(Buffer_Weather), "%s", string_value);
 			 	persist_write_string(Weather_Text_key, string_value);
  				text_layer_set_text(CWeather_Text, Buffer_Weather); 
-			 	if (Settings.Verbose)
-					APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Weather was updated!");
+				
+			 	APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Weather was updated!");
 			 
 			 	break; 
 			 
@@ -179,8 +174,8 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 			 	snprintf(Buffer_Add_String, sizeof(Buffer_Add_String), "%s", string_value);
 			 	persist_write_string(AddInfo_Text_key, string_value);
  				text_layer_set_text(AddInfo_Text, Buffer_Add_String); 
-			 	if (Settings.Verbose)
-					APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Additional info was updated!");
+					
+			 	APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Additional info was updated!");
 			 
 			 	break;
 			 
@@ -188,9 +183,8 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 			 	
 			 	strcpy(Settings.Location, string_value);
 			 	persist_write_string(Location_key, Settings.Location);
-			 	if (Settings.Verbose){
-					APP_LOG(APP_LOG_LEVEL_INFO, "Location changed");
-				}
+			 
+				APP_LOG(APP_LOG_LEVEL_INFO, "Location changed");
 			 
 			 	break;
 			
@@ -198,12 +192,8 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 			 	
 			 	Settings.Hourly_Vibe = value;
 			 	persist_write_bool(Hourly_Vibe_key, Settings.Hourly_Vibe);
-			 	if (Settings.Verbose){
-			 		if (value)
-						APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Hourly vibration is enabled");
-			 		else
-						APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Hourly vibration is disabled");
-				}
+			 
+			 	APP_LOG(APP_LOG_LEVEL_INFO, "Hourly vibe changed");
 			 	
 			 	break;
 			 
@@ -211,12 +201,8 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 			 	
 			 	Settings.BT_Vibe = value;
 				persist_write_bool(BT_Vibe_key, Settings.BT_Vibe);
-			 	if (Settings.Verbose){
-			 		if (value)
-						APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Bluetooth vibration is enabled");
-			 		else
-						APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Bluetooth vibration is disabled");
-				}
+			 
+			 	APP_LOG(APP_LOG_LEVEL_INFO, "BT vibe changed");
 			 
 				 break;
 			 
@@ -226,9 +212,9 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 				 	Settings.Language = value;
 					persist_write_bool(Language_key, Settings.Language);
 				}
-			 	UpdateTime_Force();
-			 	if (Settings.Verbose)
-					APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Language applied");
+			 	Init_Display();
+					
+			 	APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Language applied");
 			 
 			 	break;
 				
@@ -239,8 +225,8 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 					persist_write_bool(Inverted_key, Settings.Inverted);
 				}
 			 	SetColors(Settings.Inverted);
-			 	if (Settings.Verbose)
-					APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Window color mode applied");
+					
+			 	APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Window color mode applied");
 			 
 			 	break;
 			 
@@ -251,12 +237,7 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 					persist_write_bool(Charge_Vibe_key, Settings.Charge_Vibe);
 				}
 			 
-			 	if (Settings.Verbose){
-					if (value)
-						APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Vibe on charge turned on");
-			 		else
-						APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Vibe on charge turned off");
-				}
+			 	APP_LOG(APP_LOG_LEVEL_INFO, "Charge vibe applied");
 			 
 			 	break;
 			 
@@ -266,12 +247,7 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 					persist_write_bool(Hide_Battery_key, Settings.Hide_Battery);
 					SetBarText(Settings.Hide_Battery, Settings.Hide_BT);
 					
-					if (Settings.Verbose){
-						if (!value)
-							APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Battery text shows");
-						else
-							APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Battery text hiding");
-					}
+					APP_LOG(APP_LOG_LEVEL_INFO, "Hide battery state applied");
 				}
 			 	
 			 	break;
@@ -282,12 +258,7 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 					persist_write_bool(Hide_BT_key, Settings.Hide_BT);
 					SetBarText(Settings.Hide_Battery, Settings.Hide_BT);
 					
-					if (Settings.Verbose){
-						if (!value)
-							APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: BT-state text shows");
-						else
-							APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: BT-state text hiding");
-					}
+					APP_LOG(APP_LOG_LEVEL_INFO, "Hide BT state applied");
 				}
 			 	
 			 	break;
@@ -299,55 +270,27 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 			 	if (Settings.Info_Updates_Frequency < 10)
 					app_timer_register(MILLS_IN_HOUR / Settings.Info_Updates_Frequency, UpdateWeather, 0);
 				else app_timer_register(MILLS_IN_HOUR, UpdateWeather, 0);
-				 APP_LOG(APP_LOG_LEVEL_INFO, Buffer_Temp);
 		 		
-			 	if (Settings.Verbose){
-					APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Info Refresh applied");
-				}
+				APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Info Refresh applied");
 			 
 		 }	 
         t = dict_read_next(iter);
     }	
-	JustRun_Flag = 0;
 }
 
-
-
-void handle_init(void) {
-	BuildWindow();
-	app_message_register_inbox_received(Process_Received_Data);
-	app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
-	
-	if (Settings.Verbose)
-		APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: App was opened!");
-}
-
-void handle_deinit(void) {
-	tick_timer_service_unsubscribe(); 
-	battery_state_service_unsubscribe();
-	bluetooth_connection_service_unsubscribe();
-	
-	if (Settings.Verbose)
-		APP_LOG(APP_LOG_LEVEL_INFO, "SmaftFace: App is closed...");
-	
-	app_message_deregister_callbacks();
- 	DestroyWindow();
-}
-
-void ReadSettings(){
+static inline void ReadSettings(){
 	Settings.Info_Updates_Frequency = 1;
 	Settings.Hourly_Vibe            = 1;
 	Settings.BT_Vibe                = 1;
-	Settings.Verbose                = 1;
 	Settings.Charge_Vibe            = 1;
 	Settings.Hide_Battery           = 0;
 	Settings.Hide_BT                = 0;
 	
 	Settings.Language               = ENGLISH_LANG;
 	Settings.Inverted               = NON_INVERTED_WINDOW;
-	strcpy(Settings.Location, "London");
-	strcpy(Settings.Weather_Text, " ");
-	strcpy(Settings.AddInfo_Text, " ");
+	strcpy(Settings.Location, "None");
+	strcpy(Settings.Weather_Text, "Set Location!");
+	strcpy(Settings.AddInfo_Text, "Add something!");
 	
 	if (persist_exists(Location_key))
 		persist_read_string(Location_key, Settings.Location, sizeof(Settings.Location));
@@ -383,7 +326,7 @@ void ReadSettings(){
 		Settings.Hide_BT = persist_read_int(Hide_BT_key);
 }
 
-void send_int(uint8_t key, uint8_t cmd)
+static inline void send_int(uint8_t key, uint8_t cmd)
 {
     DictionaryIterator *iter;
     app_message_outbox_begin(&iter);
@@ -393,18 +336,17 @@ void send_int(uint8_t key, uint8_t cmd)
  
     app_message_outbox_send();
 	
-	if (Settings.Verbose)
-		APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Data was sended!");
+	APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Data was sended!");
 }
 
-void UpdateWeather(){
-	if (Settings.Verbose)
-		APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Weather is updated");
+static inline void UpdateWeather(){
+	APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Info is updated");
 	
-	if (!bluetooth_connection_service_peek()){
+	if (!IsConnected_Flag){
 		text_layer_set_text(CWeather_Text, OfflineNames[Settings.Language]);
 	}
-	else {
+	else if (!JustRun_Flag) {
+		psleep(1000);
 		send_int(CURRENT_WEATHER, 1);
 	}
 	
@@ -413,7 +355,9 @@ void UpdateWeather(){
 	else app_timer_register(MILLS_IN_HOUR, UpdateWeather, 0);
 }
 
-static void UpdateConnection(bool Connected){
+static inline void UpdateConnection(bool Connected){
+	IsConnected_Flag = Connected;
+	
 	if ( (!JustRun_Flag)&&(Settings.BT_Vibe) )
 		vibes_long_pulse();
 	
@@ -426,13 +370,12 @@ static void UpdateConnection(bool Connected){
 	
 	text_layer_set_text(Connection_Text, BTNames[Settings.Language][Connected]);
 	
-	if (Settings.Verbose)
-		APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: BT-Connection was updated!");
+	APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: BT-Connection was updated!");
 }
 
-static void UpdateBattery(BatteryChargeState State){
+static inline void UpdateBattery(BatteryChargeState State){
 	static char Percents[] = "100%";
-	static int  Vibe_Flag;
+	static bool  Vibe_Flag;
 	
 	if ( (!Vibe_Flag) && (State.is_plugged) && (Settings.Charge_Vibe) && (!JustRun_Flag)){
 		vibes_short_pulse();
@@ -451,67 +394,86 @@ static void UpdateBattery(BatteryChargeState State){
 	bitmap_layer_set_bitmap(BAT_Image, BAT); 
 }
 
-static void BatteryTimer(){
+static inline void BatteryTimer(){
 	UpdateBattery(battery_state_service_peek());
 	app_timer_register(MILLS_IN_HOUR / 3, BatteryTimer, 0);
 	
-	if (Settings.Verbose)
-		APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Battery state was updated!");
+	APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Battery state was updated!");
 }
 
-static void UpdateTime(struct tm* CurrentTime, TimeUnits units_changed){
+static inline void UpdateTime(struct tm* CurrentTime, TimeUnits units_changed){
 	strftime(Time, sizeof(Time), "%H:%M", CurrentTime);
 	text_layer_set_text(Time_Text, Time);
-	
-	strftime(Date, sizeof(Date), "%d.%m.%Y", CurrentTime);
-	text_layer_set_text(Date_Text, Date);
-
-	text_layer_set_text(Week_Text, DayNames[Settings.Language][CurrentTime->tm_wday]);
 	
 	if ( (CurrentTime -> tm_min == 0) && (!JustRun_Flag) && (Settings.Hourly_Vibe) )
 		vibes_double_pulse();
 }
 
-void UpdateTime_Force(){
+static inline void UpdateDate(struct tm* CurrentTime, TimeUnits units_changed){
+	strftime(Date, sizeof(Date), "%d.%m.%Y", CurrentTime);
+	text_layer_set_text(Date_Text, Date);
+	text_layer_set_text(Week_Text, DayNames[Settings.Language][CurrentTime->tm_wday]);
+	
+}
+
+static inline void Init_Display(){
+	
+	/*Set current time*/
 	now = time(NULL);
     current_time = localtime(&now);
     UpdateTime(current_time, SECOND_UNIT);
-}
-
-int main(void) {
-	handle_init();
-	
-	ReadSettings();
-	SetColors(Settings.Inverted);
-	SetBarText(Settings.Hide_Battery, Settings.Hide_BT);
-	JustRun_Flag = 1;
-	
+	UpdateDate(current_time, SECOND_UNIT);
+	/*Set bottom strings*/
 	snprintf(Buffer_Add_String, sizeof(Buffer_Add_String), "%s", Settings.AddInfo_Text);
  	text_layer_set_text(AddInfo_Text, Buffer_Add_String); 
 	
 	snprintf(Buffer_Weather, sizeof(Buffer_Weather), "%s", Settings.Weather_Text);
  	text_layer_set_text(CWeather_Text, Buffer_Weather); 
+}
+
+int main(void) {
+	/*Interface building*/
+	JustRun_Flag = 1;
+	BuildWindow();
 	
-	UpdateTime_Force();
+	/*communication with phone*/
+	app_message_register_inbox_received(Process_Received_Data);
+	app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
+	APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: App was opened!");
 	
+	/*Application Settings*/
+	ReadSettings();
+	SetColors(Settings.Inverted);
+	SetBarText(Settings.Hide_Battery, Settings.Hide_BT);
+	Init_Display();
+	
+	/*Checking BT - connection*/
 	UpdateConnection(bluetooth_connection_service_peek());
-	
 	if (!bluetooth_connection_service_peek())
 		text_layer_set_text(CWeather_Text, OfflineNames[Settings.Language]);
 	
 	BatteryTimer();
 	
+	/*subcribing to services*/
 	tick_timer_service_subscribe(MINUTE_UNIT, &UpdateTime);
+	tick_timer_service_subscribe(DAY_UNIT, &UpdateDate);
 	battery_state_service_subscribe(UpdateBattery);
 	bluetooth_connection_service_subscribe(UpdateConnection);
 	
-	JustRun_Flag = 0;
-
-	if (Settings.Verbose)
-		APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: App running!");
-	
 	window_stack_push(MainWindow, true);
+	JustRun_Flag = 0;
 	
   	app_event_loop();
-  	handle_deinit();
+	
+	/*unsubcribing from services*/
+	APP_LOG(APP_LOG_LEVEL_INFO, "SmaftFace: App is closed...");
+  	tick_timer_service_unsubscribe(); 
+	battery_state_service_unsubscribe();
+	bluetooth_connection_service_unsubscribe();
+	
+	/*Closing phone connection*/
+	app_message_deregister_callbacks();
+	
+	/*Inerface destroying*/
+ 	DestroyWindow();
 }

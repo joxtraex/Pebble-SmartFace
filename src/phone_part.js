@@ -1,4 +1,3 @@
-var Verbose;
 var Location;
 var Hourly_Vibe;
 var BT_Vibe ;
@@ -11,17 +10,17 @@ var Charge_Vibe;
 var Hide_Battery;
 var Hide_BT;
 
-var Location_key                    = 2;
-var Hourly_Vibe_key                 = 3;
-var BT_Vibe_key                     = 4;
-var Info_Updates_Frequency_key      = 5;
-var Add_String_key                  = 6;
-var Language_key                    = 7;
-var Inverted_key                    = 8;
-var Hide_Weather_key                = 9;
-var Charge_Vibe_key                 =10;
-var Hide_Battery_key                =11;
-var Hide_BT_key                     =12;
+var Location_key                    = 1;
+var Hourly_Vibe_key                 = 2;
+var BT_Vibe_key                     = 3;
+var Info_Updates_Frequency_key      = 4;
+var Add_String_key                  = 5;
+var Language_key                    = 6;
+var Inverted_key                    = 7;
+var Hide_Weather_key                = 8;
+var Charge_Vibe_key                 = 9;
+var Hide_Battery_key                =10;
+var Hide_BT_key                     =11;
 
 function HTTPGET(url) {
     var req = new XMLHttpRequest();
@@ -57,7 +56,7 @@ function ReadSettings(){
 	if (!Language)
 		Language = 0;
 	if (!Inverted)
-		Inverted = 0;
+		Inverted = 1;
 	if (!Hide_Weather)
 		Hide_Weather = 0;
 	if (!Charge_Vibe)
@@ -67,8 +66,7 @@ function ReadSettings(){
 	if (!Hide_BT)
 		Hide_BT = 0;
 		
-	if (Verbose)
-		console.log('SmartFace [phone]: Location - ' + Location + '; Hourly vibration - ' + Hourly_Vibe + '; Info refresh - ' + Info_Updates_Frequency + '; BT vibration - ' + BT_Vibe + '; Language - ' + Language + '; Inverted - ' + Inverted + "; Hide Weather - " + Hide_Weather + "; Charging Vibe - " + Charge_Vibe + "; Hiding Battery text - " + Hide_Battery + "; Hiding BT-state text - " + Hide_BT);
+	console.log('SmartFace [phone]: Location - ' + Location + '; Hourly vibration - ' + Hourly_Vibe + '; Info refresh - ' + Info_Updates_Frequency + '; BT vibration - ' + BT_Vibe + '; Language - ' + Language + '; Inverted - ' + Inverted + "; Hide Weather - " + Hide_Weather + "; Charging Vibe - " + Charge_Vibe + "; Hiding Battery text - " + Hide_Battery + "; Hiding BT-state text - " + Hide_BT);
 }
 
 function SendSettings(){
@@ -157,15 +155,13 @@ function Update_Info(){
 
 	Pebble.sendAppMessage(dict);
 	
-	if (Verbose)
-		console.log('SmartFace [phone]: Info updated: ' + CurrentWeather + ' ' + Location + '; ' + response);
+	console.log('SmartFace [phone]: Info updated: ' + CurrentWeather + ' ' + Location + '; ' + response);
 }
 
 
 Pebble.addEventListener("showConfiguration",
   function(e) {
-    if (Verbose)
-			console.log('SmartFace [phone]: Configuration is open');
+    console.log('SmartFace [phone]: Configuration is open');
   
     Pebble.openURL("http://grakovne.org/pebble/SmartFace/AppConfig.php?Location=" + Location + "&Info_Updates_Frequency=" + Info_Updates_Frequency + "&Hourly_Vibe=" + Hourly_Vibe + "&BT_Vibe=" + BT_Vibe + "&Add_String=" + Add_String + "&Language=" + Language + "&Inverted=" + Inverted + "&Hide_Weather=" + Hide_Weather + "&Charge_Vibe=" + Charge_Vibe + "&Hide_Battery=" + Hide_Battery + "&Hide_BT=" + Hide_BT);
   }
@@ -206,8 +202,7 @@ Pebble.addEventListener("webviewclosed",
 
 Pebble.addEventListener("appmessage",
   function(e) {
-	if (Verbose)
-		console.log('SmartFace [phone]: New message Received!');
+	console.log('SmartFace [phone]: New message Received!');
 	 
 	if ('CURRENT_WEATHER' in e.payload)
 		Update_Info();
@@ -219,7 +214,6 @@ Pebble.addEventListener("ready",
 	ReadSettings();
 	SendSettings();
 	Update_Info();  
-	if (Verbose)
-		console.log('SmartFace [phone]: App running OK...');
+	console.log('SmartFace [phone]: App running OK...');
   }
 );

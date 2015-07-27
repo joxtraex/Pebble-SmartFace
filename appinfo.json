@@ -72,15 +72,9 @@
                 "type": "png"
             },
             {
-                "characterRegex": "[ -~ \u0410-\u042f \u0430-\u044f]",
+                "characterRegex": "[0-9%OKLOST\u041d\u0415\u0422]",
                 "file": "fonts/imagine_font.ttf",
-                "name": "IMAGINE_TIME_14",
-                "type": "font"
-            },
-            {
-                "characterRegex": "[ 0-9:]",
-                "file": "fonts/imagine_font.ttf",
-                "name": "IMAGINE_TIME_37",
+                "name": "IMAGINE_TIME_12",
                 "type": "font"
             },
             {
@@ -90,9 +84,15 @@
                 "type": "font"
             },
             {
-                "characterRegex": "[0-9%OKLOST\u041d\u0415\u0422!]",
+                "characterRegex": "[ 0-9:]",
                 "file": "fonts/imagine_font.ttf",
-                "name": "IMAGINE_TIME_12",
+                "name": "IMAGINE_TIME_37",
+                "type": "font"
+            },
+            {
+                "characterRegex": "[ -~ \u0410-\u042f \u0430-\u044f]",
+                "file": "fonts/imagine_font.ttf",
+                "name": "IMAGINE_TIME_14",
                 "type": "font"
             },
             {
