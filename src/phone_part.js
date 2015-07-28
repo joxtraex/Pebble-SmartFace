@@ -24,13 +24,20 @@ var Hide_BT_key                     =11;
 
 function HTTPGET(url) {
     var req = new XMLHttpRequest();
-    req.open("GET", url, false);
-    req.send(null);
-    return req.responseText;
+	for (var i = 0; i < 3; i++){
+		try {
+			req.open("GET", url, false);
+			req.send(null);
+            }
+		catch (err) {}
+		if(req.status == 200)
+			return req.responseText;
+	}
+	return 0;
+	
 }
 
 function ReadSettings(){
-	Verbose = 1;
 	Location = localStorage.getItem(Location_key);
 	Hourly_Vibe = localStorage.getItem(Hourly_Vibe_key);
 	BT_Vibe = localStorage.getItem(BT_Vibe_key);
@@ -71,7 +78,7 @@ function ReadSettings(){
 
 function SendSettings(){
 	
-	Pebble.sendAppMessage({'LOCATION': Location,
+	Pebble.sendAppMessage({
 							'HOURLY_VIBE': parseInt(Hourly_Vibe),
 							'BT_VIBE': parseInt(BT_Vibe),
 							'INFO_UPDATES_FREQUENCY': parseInt(Info_Updates_Frequency),
@@ -85,8 +92,9 @@ function SendSettings(){
 
 function Update_Info(){
 	var CurrentWeather = " ";
+	var response = " ";
 	if (Hide_Weather == 0){
-		var response = HTTPGET("http://api.openweathermap.org/data/2.5/weather?q=" + Location);
+		response = HTTPGET("http://api.openweathermap.org/data/2.5/weather?q=" + Location);
 	
 		var json = JSON.parse(response);
 		var temperature = (json.main.temp - 273.15);
@@ -134,30 +142,33 @@ function Update_Info(){
 				case "Mist":
 					state = "Туман";
 			}
-		
 	
-		/*Sending All data to Pebble*/
 		CurrentWeather = state + ', ' + sign + temperature + "C";
 	
 	}
+	
 	else
 		CurrentWeather = " ";
 		
-	if (Add_String != "Empty")
-		if (Add_String == "Location")
+	switch (Add_String){
+		case "Empty":
+			response = " ";
+			
+			break;
+		
+		case "Location":
 			response = Location;
-		else
+			
+			break;
+			
+		default:
 			response = HTTPGET("http://grakovne.org/pebble/SmartFace/CustomStings/" + Add_String + ".php");
-	else
-		response  = " ";
-	
-	var dict = {"CURRENT_WEATHER" : CurrentWeather, "ADD_INFO" : response};
+	}
 
-	Pebble.sendAppMessage(dict);
+	Pebble.sendAppMessage({"CURRENT_WEATHER" : CurrentWeather, "ADD_INFO" : response});
 	
 	console.log('SmartFace [phone]: Info updated: ' + CurrentWeather + ' ' + Location + '; ' + response);
 }
-
 
 Pebble.addEventListener("showConfiguration",
   function(e) {

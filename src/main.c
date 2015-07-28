@@ -2,6 +2,7 @@
 #include "window.h"
 
 #define MILLS_IN_HOUR               3600000
+#define TWENTY_MINS	                1200000
 	
 #define NON_INVERTED_WINDOW         0
 #define INVERTED_WINDOW             1
@@ -9,18 +10,17 @@
 #define ENGLISH_LANG                0
 #define RUSSIAN_LANG                1
 
-#define Location_key                1
-#define Hourly_Vibe_key             2
-#define BT_Vibe_key                 3
-#define Info_Updates_Frequency_key  4
-#define Add_String_key              5
-#define Language_key                6
-#define Inverted_key                7
-#define Charge_Vibe_key             8
-#define Hide_Battery_key            9
-#define Hide_BT_key                 10
-#define Weather_Text_key            11
-#define AddInfo_Text_key            12
+#define Hourly_Vibe_key             1
+#define BT_Vibe_key                 2
+#define Info_Updates_Frequency_key  3
+#define Add_String_key              4
+#define Language_key                5
+#define Inverted_key                6
+#define Charge_Vibe_key             7
+#define Hide_Battery_key            8
+#define Hide_BT_key                 9
+#define Weather_Text_key            10
+#define AddInfo_Text_key            11
 	
 	
 Window *MainWindow;
@@ -84,7 +84,7 @@ static const uint32_t BT_Icons[] = {
 	RESOURCE_ID_BT_ICON
 };
 
-static const char DayNames[2][7][32] = {
+static const char DayNames[2][7][24] = {
 	{
 		"SUNDAY",
 		"MONDAY",
@@ -95,50 +95,48 @@ static const char DayNames[2][7][32] = {
 		"SATURDAY"
 	},
 	{
-		"ВОСКРЕСЕНЬЕ",
-		"ПОНЕДЕЛЬНИК",
-		"ВТОРНИК",
-		"СРЕДА",
-		"ЧЕТВЕРГ",
-		"ПЯТНИЦА",
-		"СУББОТА"
+		"BOCKPECEHЬE",
+		"ПOHEДEЛЬHИK",
+		"BTOPHИK",
+		"CPEДA",
+		"ЧETBЕPГ",
+		"ПЯTHИЦA",
+		"CYББOTA"
 	}
 };
 
-static const char OfflineNames[2][32] = {
+static const char OfflineNames[2][16] = {
 	"OFFLINE",
-	"НЕТ СЕТИ"
+	"HET CETИ"
 };
 
-static const char BTNames[2][2][32] = {
+static const char BTNames[2][2][7] = {
 	{
 		"LOST",
 		"OK"
 	},
 	{
-		"НЕТ",
+		"HET",
 		"OK"
 	}
 };
 
 enum {
 	CURRENT_WEATHER          = 0,
-	LOCATION                 = 1,
-	HOURLY_VIBE              = 2,
-	BT_VIBE                  = 3,
-	INFO_UPDATES_FREQUENCY   = 4,
-	ADD_INFO                 = 5,
-	LANGUAGE                 = 6,
-	INVERTED                 = 7,
-	CHARGE_VIBE              = 8,
-	HIDE_BATTERY             = 9,
-	HIDE_BT                  = 10,
+	HOURLY_VIBE              = 1,
+	BT_VIBE                  = 2,
+	INFO_UPDATES_FREQUENCY   = 3,
+	ADD_INFO                 = 4,
+	LANGUAGE                 = 5,
+	INVERTED                 = 6,
+	CHARGE_VIBE              = 7,
+	HIDE_BATTERY             = 8,
+	HIDE_BT                  = 9,
 };
 
-struct {
+static struct {
 	char Info_Updates_Frequency;
-	char Location [32];
-	char Weather_Text [32];
+	char Weather_Text [24];
 	char AddInfo_Text [32];
 	bool Hourly_Vibe;
 	bool BT_Vibe;
@@ -152,39 +150,35 @@ struct {
 static void Process_Received_Data(DictionaryIterator *iter, void *context){
 	Tuple *t = dict_read_first(iter);
 	 while(t != NULL){
-		int key = t->key;
-        int value = t->value->int32;
+		char key = t->key;
+        char value = t->value->int32;
 		char string_value[32];
 		strcpy(string_value, t->value->cstring);	 
 		 switch (key){
 			 case CURRENT_WEATHER:
-			 
-			 	strcpy(Settings.Weather_Text, string_value);
-			 	snprintf(Buffer_Weather, sizeof(Buffer_Weather), "%s", string_value);
-			 	persist_write_string(Weather_Text_key, string_value);
- 				text_layer_set_text(CWeather_Text, Buffer_Weather); 
+			 	
+			 		if (strcmp(string_value, Settings.Weather_Text)){
+			 			strcpy(Settings.Weather_Text, string_value);
+						strcpy(Settings.Weather_Text, string_value);
+						strcpy(Buffer_Weather, string_value);
+			 			persist_write_string(Weather_Text_key, string_value);
+ 						text_layer_set_text(CWeather_Text, Buffer_Weather); 
 				
-			 	APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Weather was updated!");
+			 			APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Weather was updated!");
+					}
 			 
 			 	break; 
 			 
 			 case ADD_INFO:
 			 
-			 	strcpy(Settings.AddInfo_Text, string_value);
-			 	snprintf(Buffer_Add_String, sizeof(Buffer_Add_String), "%s", string_value);
-			 	persist_write_string(AddInfo_Text_key, string_value);
- 				text_layer_set_text(AddInfo_Text, Buffer_Add_String); 
+			 	if (strcmp(string_value, Settings.Weather_Text)){
+			 			strcpy(Settings.AddInfo_Text, string_value);
+			 			strcpy(Buffer_Add_String, string_value);
+			 			persist_write_string(AddInfo_Text_key, string_value);
+ 						text_layer_set_text(AddInfo_Text, Buffer_Add_String); 
 					
-			 	APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Additional info was updated!");
-			 
-			 	break;
-			 
-			 case LOCATION:
-			 	
-			 	strcpy(Settings.Location, string_value);
-			 	persist_write_string(Location_key, Settings.Location);
-			 
-				APP_LOG(APP_LOG_LEVEL_INFO, "Location changed");
+			 			APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Additional info was updated!");
+				}
 			 
 			 	break;
 			
@@ -193,7 +187,7 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 			 	Settings.Hourly_Vibe = value;
 			 	persist_write_bool(Hourly_Vibe_key, Settings.Hourly_Vibe);
 			 
-			 	APP_LOG(APP_LOG_LEVEL_INFO, "Hourly vibe changed");
+			 	APP_LOG(APP_LOG_LEVEL_INFO, "Hourly vibe applied");
 			 	
 			 	break;
 			 
@@ -202,7 +196,7 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 			 	Settings.BT_Vibe = value;
 				persist_write_bool(BT_Vibe_key, Settings.BT_Vibe);
 			 
-			 	APP_LOG(APP_LOG_LEVEL_INFO, "BT vibe changed");
+			 	APP_LOG(APP_LOG_LEVEL_INFO, "BT vibe applied");
 			 
 				 break;
 			 
@@ -279,55 +273,60 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 }
 
 static inline void ReadSettings(){
-	Settings.Info_Updates_Frequency = 1;
-	Settings.Hourly_Vibe            = 1;
-	Settings.BT_Vibe                = 1;
-	Settings.Charge_Vibe            = 1;
-	Settings.Hide_Battery           = 0;
-	Settings.Hide_BT                = 0;
-	
-	Settings.Language               = ENGLISH_LANG;
-	Settings.Inverted               = NON_INVERTED_WINDOW;
-	strcpy(Settings.Location, "None");
-	strcpy(Settings.Weather_Text, "Set Location!");
-	strcpy(Settings.AddInfo_Text, "Add something!");
-	
-	if (persist_exists(Location_key))
-		persist_read_string(Location_key, Settings.Location, sizeof(Settings.Location));
-	
+
 	if (persist_exists(Weather_Text_key))
 		persist_read_string(Weather_Text_key, Settings.Weather_Text, sizeof(Settings.Weather_Text));
+	else
+		strcpy(Settings.Weather_Text, "Set Location!");
+		
 	
 	if (persist_exists(AddInfo_Text_key))
 		persist_read_string(AddInfo_Text_key, Settings.AddInfo_Text, sizeof(Settings.AddInfo_Text));
+	else
+		strcpy(Settings.AddInfo_Text, "Add something!");
 	
 	if (persist_exists(Hourly_Vibe_key)) 
 		Settings.Hourly_Vibe = persist_read_int(Hourly_Vibe_key);
+	else
+		Settings.Hourly_Vibe = 1;
 
 	if (persist_exists(BT_Vibe_key)) 
 		Settings.BT_Vibe = persist_read_int(BT_Vibe_key);
+	else
+		Settings.BT_Vibe = 1;
 	
 	if (persist_exists(Info_Updates_Frequency_key)) 
 		Settings.Info_Updates_Frequency = persist_read_int(Info_Updates_Frequency_key);
+	else
+		Settings.Info_Updates_Frequency = 1;
 	
 	if (persist_exists(Language_key)) 
 		Settings.Language = persist_read_int(Language_key);
+	else
+		Settings.Language = ENGLISH_LANG;
 	
 	if (persist_exists(Inverted_key)) 
 		Settings.Inverted = persist_read_int(Inverted_key);
+	else
+		Settings.Inverted = NON_INVERTED_WINDOW;
 	
 	if (persist_exists(Charge_Vibe_key)) 
 		Settings.Charge_Vibe = persist_read_int(Charge_Vibe_key);
+	else
+		Settings.Charge_Vibe = 1;
 	
 	if (persist_exists(Hide_Battery_key)) 
 		Settings.Hide_Battery = persist_read_int(Hide_Battery_key);
+	else
+		Settings.Hide_Battery = 0;
 	
 	if (persist_exists(Hide_BT_key)) 
 		Settings.Hide_BT = persist_read_int(Hide_BT_key);
+	else
+		Settings.Hide_BT = 0;
 }
 
-static inline void send_int(uint8_t key, uint8_t cmd)
-{
+static inline void send_int(uint8_t key, uint8_t cmd){
     DictionaryIterator *iter;
     app_message_outbox_begin(&iter);
  
@@ -394,18 +393,22 @@ static inline void UpdateBattery(BatteryChargeState State){
 	bitmap_layer_set_bitmap(BAT_Image, BAT); 
 }
 
-static inline void BatteryTimer(){
+/*static inline void BatteryTimer(){
 	UpdateBattery(battery_state_service_peek());
-	app_timer_register(MILLS_IN_HOUR / 3, BatteryTimer, 0);
+	app_timer_register(TWENTY_MINS, BatteryTimer, 0);
 	
 	APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Battery state was updated!");
 }
-
+*/
 static inline void UpdateTime(struct tm* CurrentTime, TimeUnits units_changed){
 	strftime(Time, sizeof(Time), "%H:%M", CurrentTime);
 	text_layer_set_text(Time_Text, Time);
 	
-	if ( (CurrentTime -> tm_min == 0) && (!JustRun_Flag) && (Settings.Hourly_Vibe) )
+	if ( (!(CurrentTime -> tm_hour)) && (!(CurrentTime -> tm_min)) ){
+		UpdateDate(CurrentTime, SECOND_UNIT);
+	}
+	
+	if ( (!(CurrentTime -> tm_min)) && (!JustRun_Flag) && (Settings.Hourly_Vibe) )
 		vibes_double_pulse();
 }
 
@@ -413,7 +416,6 @@ static inline void UpdateDate(struct tm* CurrentTime, TimeUnits units_changed){
 	strftime(Date, sizeof(Date), "%d.%m.%Y", CurrentTime);
 	text_layer_set_text(Date_Text, Date);
 	text_layer_set_text(Week_Text, DayNames[Settings.Language][CurrentTime->tm_wday]);
-	
 }
 
 static inline void Init_Display(){
@@ -449,16 +451,16 @@ int main(void) {
 	
 	/*Checking BT - connection*/
 	UpdateConnection(bluetooth_connection_service_peek());
-	if (!bluetooth_connection_service_peek())
+	if (!IsConnected_Flag)
 		text_layer_set_text(CWeather_Text, OfflineNames[Settings.Language]);
 	
-	BatteryTimer();
+	/*BatteryTimer();*/
+	UpdateBattery(battery_state_service_peek());
 	
 	/*subcribing to services*/
 	tick_timer_service_subscribe(MINUTE_UNIT, &UpdateTime);
-	tick_timer_service_subscribe(DAY_UNIT, &UpdateDate);
-	battery_state_service_subscribe(UpdateBattery);
 	bluetooth_connection_service_subscribe(UpdateConnection);
+	battery_state_service_subscribe(UpdateBattery);
 	
 	window_stack_push(MainWindow, true);
 	JustRun_Flag = 0;
