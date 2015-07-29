@@ -6,6 +6,7 @@
         "CURRENT_WEATHER": 0,
         "HIDE_BATTERY": 8,
         "HIDE_BT": 9,
+        "HIDE_WEATHER": 10,
         "HOURLY_VIBE": 1,
         "INFO_UPDATES_FREQUENCY": 3,
         "INVERTED": 6,
@@ -122,7 +123,7 @@
         "aplite"
     ],
     "uuid": "55ff601c-2ac2-482d-ba73-342f77bcd648",
-    "versionLabel": "2.0",
+    "versionLabel": "2.1",
     "watchapp": {
         "watchface": true
     }

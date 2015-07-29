@@ -24,7 +24,7 @@ var Hide_BT_key                     =11;
 
 function HTTPGET(url) {
     var req = new XMLHttpRequest();
-	for (var i = 0; i < 3; i++){
+	for (var i = 0; i < 2; i++){
 		try {
 			req.open("GET", url, false);
 			req.send(null);
@@ -34,7 +34,6 @@ function HTTPGET(url) {
 			return req.responseText;
 	}
 	return 0;
-	
 }
 
 function ReadSettings(){
@@ -63,7 +62,7 @@ function ReadSettings(){
 	if (!Language)
 		Language = 0;
 	if (!Inverted)
-		Inverted = 1;
+		Inverted = 0;
 	if (!Hide_Weather)
 		Hide_Weather = 0;
 	if (!Charge_Vibe)
@@ -73,20 +72,20 @@ function ReadSettings(){
 	if (!Hide_BT)
 		Hide_BT = 0;
 		
-	console.log('SmartFace [phone]: Location - ' + Location + '; Hourly vibration - ' + Hourly_Vibe + '; Info refresh - ' + Info_Updates_Frequency + '; BT vibration - ' + BT_Vibe + '; Language - ' + Language + '; Inverted - ' + Inverted + "; Hide Weather - " + Hide_Weather + "; Charging Vibe - " + Charge_Vibe + "; Hiding Battery text - " + Hide_Battery + "; Hiding BT-state text - " + Hide_BT);
+	//console.log('SmartFace [phone]: Location - ' + Location + '; Hourly vibration - ' + Hourly_Vibe + '; Info refresh - ' + Info_Updates_Frequency + '; BT vibration - ' + BT_Vibe + '; Language - ' + Language + '; Inverted - ' + Inverted + "; Hide Weather - " + Hide_Weather + "; Charging Vibe - " + Charge_Vibe + "; Hiding Battery text - " + Hide_Battery + "; Hiding BT-state text - " + Hide_BT);
 }
 
 function SendSettings(){
-	
 	Pebble.sendAppMessage({
-							'HOURLY_VIBE': parseInt(Hourly_Vibe),
-							'BT_VIBE': parseInt(BT_Vibe),
-							'INFO_UPDATES_FREQUENCY': parseInt(Info_Updates_Frequency),
-							'LANGUAGE' : parseInt(Language),
-							'INVERTED' : parseInt (Inverted),
-							'CHARGE_VIBE' : parseInt(Charge_Vibe),
-							'HIDE_BATTERY' : parseInt(Hide_Battery),
-							'HIDE_BT' : parseInt(Hide_BT),
+							'HOURLY_VIBE'             : parseInt(Hourly_Vibe),
+							'BT_VIBE'                 : parseInt(BT_Vibe),
+							'INFO_UPDATES_FREQUENCY'  : parseInt(Info_Updates_Frequency),
+							'LANGUAGE'                : parseInt(Language),
+							'INVERTED'                : parseInt (Inverted),
+							'CHARGE_VIBE'             : parseInt(Charge_Vibe),
+							'HIDE_BATTERY'            : parseInt(Hide_Battery),
+							'HIDE_BT'                 : parseInt(Hide_BT),
+							'HIDE_WEATHER'            : parseInt(Hide_Weather),
 							}); 
 }
 
@@ -95,7 +94,6 @@ function Update_Info(){
 	var response = " ";
 	if (Hide_Weather == 0){
 		response = HTTPGET("http://api.openweathermap.org/data/2.5/weather?q=" + Location);
-	
 		var json = JSON.parse(response);
 		var temperature = (json.main.temp - 273.15);
 	
@@ -108,10 +106,13 @@ function Update_Info(){
   
 		var state = json.weather[0].main;
 
-		if (state == "Thunderstorm")
-			state = "Storm";
-		if (state == "Atmosphere")
-			state = "Smoke";
+		switch (state){
+			case "Thunderstorm":
+				state = "Storm";
+				break;
+			case "Atmosphere":
+				state = "Smoke";
+		}
 	
 		if (Language == 1)
 			switch(state){
@@ -142,9 +143,7 @@ function Update_Info(){
 				case "Mist":
 					state = "Туман";
 			}
-	
 		CurrentWeather = state + ', ' + sign + temperature + "C";
-	
 	}
 	
 	else
@@ -153,12 +152,12 @@ function Update_Info(){
 	switch (Add_String){
 		case "Empty":
 			response = " ";
-			
 			break;
 		
 		case "Location":
 			response = Location;
-			
+			if (response.length > 10)
+				response = response.substr(0, 10) + "...";
 			break;
 			
 		default:
@@ -167,13 +166,12 @@ function Update_Info(){
 
 	Pebble.sendAppMessage({"CURRENT_WEATHER" : CurrentWeather, "ADD_INFO" : response});
 	
-	console.log('SmartFace [phone]: Info updated: ' + CurrentWeather + ' ' + Location + '; ' + response);
+	//console.log('SmartFace [phone]: Info updated: ' + CurrentWeather + ' ' + Location + '; ' + response);
 }
 
 Pebble.addEventListener("showConfiguration",
   function(e) {
-    console.log('SmartFace [phone]: Configuration is open');
-  
+    //console.log('SmartFace [phone]: Configuration is open');
     Pebble.openURL("http://grakovne.org/pebble/SmartFace/AppConfig.php?Location=" + Location + "&Info_Updates_Frequency=" + Info_Updates_Frequency + "&Hourly_Vibe=" + Hourly_Vibe + "&BT_Vibe=" + BT_Vibe + "&Add_String=" + Add_String + "&Language=" + Language + "&Inverted=" + Inverted + "&Hide_Weather=" + Hide_Weather + "&Charge_Vibe=" + Charge_Vibe + "&Hide_Battery=" + Hide_Battery + "&Hide_BT=" + Hide_BT);
   }
 );
@@ -213,7 +211,7 @@ Pebble.addEventListener("webviewclosed",
 
 Pebble.addEventListener("appmessage",
   function(e) {
-	console.log('SmartFace [phone]: New message Received!');
+	//console.log('SmartFace [phone]: New message Received!');
 	 
 	if ('CURRENT_WEATHER' in e.payload)
 		Update_Info();
@@ -225,6 +223,6 @@ Pebble.addEventListener("ready",
 	ReadSettings();
 	SendSettings();
 	Update_Info();  
-	console.log('SmartFace [phone]: App running OK...');
+	//console.log('SmartFace [phone]: App running OK...');
   }
 );

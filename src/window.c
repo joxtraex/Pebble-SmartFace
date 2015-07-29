@@ -120,9 +120,10 @@ void BuildWindow(){
 	text_layer_set_background_color(AddInfo_Text, GColorClear);
 }
 
-void SetBarText(bool Battery, bool BT){
+void SetBarText(bool Battery, bool BT, bool Weather){
 	layer_set_hidden((Layer *)Battery_Text, Battery);
 	layer_set_hidden((Layer *)Connection_Text, BT);
+	layer_set_hidden((Layer *)CWeather_Text, Weather);
 }
 
 void DestroyWindow(){
