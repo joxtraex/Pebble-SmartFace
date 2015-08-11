@@ -9,6 +9,13 @@ var Hide_Weather;
 var Charge_Vibe;
 var Hide_Battery;
 var Hide_BT;
+var Temp_Units;
+var Night_Mode;
+var Night_Hours_On;
+var Night_Hours_Off;
+var Night_Mins_On;
+var Night_Mins_Off;
+var Shake_Updade;
 
 var Location_key                    = 1;
 var Hourly_Vibe_key                 = 2;
@@ -21,6 +28,13 @@ var Hide_Weather_key                = 8;
 var Charge_Vibe_key                 = 9;
 var Hide_Battery_key                =10;
 var Hide_BT_key                     =11;
+var Temp_Units_key                  =12;
+var Night_Mode_key                  =13;
+var Night_Hours_On_key              =14;
+var Night_Hours_Off_key             =15;
+var Night_Mins_On_key               =16;
+var Night_Mins_Off_key              =17;
+var Shake_Update_key                =18;
 
 function HTTPGET(url) {
     var req = new XMLHttpRequest();
@@ -48,6 +62,13 @@ function ReadSettings(){
 	Charge_Vibe = localStorage.getItem(Charge_Vibe_key);
 	Hide_Battery = localStorage.getItem(Hide_Battery_key);
 	Hide_BT = localStorage.getItem(Hide_BT_key);
+	Temp_Units = localStorage.getItem(Temp_Units_key);
+	Night_Mode = localStorage.getItem(Night_Mode_key);
+	Night_Hours_On = localStorage.getItem(Night_Hours_On_key);
+	Night_Hours_Off = localStorage.getItem(Night_Hours_Off_key);
+	Night_Mins_On = localStorage.getItem(Night_Mins_On_key);
+	Night_Mins_Off = localStorage.getItem(Night_Mins_Off_key);
+	Shake_Update = localStorage.getItem(Shake_Update_key);
 	
 	if (!Location)
 		Location = "London";
@@ -71,11 +92,27 @@ function ReadSettings(){
 		Hide_Battery = 0;
 	if (!Hide_BT)
 		Hide_BT = 0;
-		
-	//console.log('SmartFace [phone]: Location - ' + Location + '; Hourly vibration - ' + Hourly_Vibe + '; Info refresh - ' + Info_Updates_Frequency + '; BT vibration - ' + BT_Vibe + '; Language - ' + Language + '; Inverted - ' + Inverted + "; Hide Weather - " + Hide_Weather + "; Charging Vibe - " + Charge_Vibe + "; Hiding Battery text - " + Hide_Battery + "; Hiding BT-state text - " + Hide_BT);
+	if (!Temp_Units)
+		Temp_Units = 0;
+	if (!Night_Mode)
+		Night_Mode = 0;
+	if (!Night_Hours_On)
+		Night_Hours_On = 0;
+	if (!Night_Hours_Off)
+		Night_Hours_Off = 0;
+	if (!Night_Mins_On)
+		Night_Mins_On = 0;
+	if (!Night_Mins_Off)
+		Night_Mins_Off = 0;	
+	if (!Shake_Update)
+		Shake_Update = 1;	
 }
 
 function SendSettings(){
+	
+	var Night_Start  = parseInt(Night_Hours_On) * 60 + parseInt(Night_Mins_On);
+	var Nigth_Finish = parseInt(Night_Hours_Off) * 60 + parseInt(Night_Mins_Off);
+	
 	Pebble.sendAppMessage({
 							'HOURLY_VIBE'             : parseInt(Hourly_Vibe),
 							'BT_VIBE'                 : parseInt(BT_Vibe),
@@ -86,6 +123,10 @@ function SendSettings(){
 							'HIDE_BATTERY'            : parseInt(Hide_Battery),
 							'HIDE_BT'                 : parseInt(Hide_BT),
 							'HIDE_WEATHER'            : parseInt(Hide_Weather),
+							'NIGHT_MODE'              : parseInt(Night_Mode),
+							'NIGHT_START'             : parseInt(Night_Start),
+							'NIGHT_FINISH'            : parseInt(Nigth_Finish),
+							'SHAKE_UPDATE'            : parseInt(Shake_Update),
 							}); 
 }
 
@@ -102,6 +143,12 @@ function Update_Info(){
 		if (temperature > 0)
 			sign = "+";
 	
+		var Unit = "C";
+		if (parseInt(Temp_Units) == 1){
+			temperature = temperature * 1.8 + 32;
+			Unit = "F";
+		}
+		
 		temperature = temperature.toFixed(1);	
   
 		var state = json.weather[0].main;
@@ -140,10 +187,16 @@ function Update_Info(){
 				case "Clear":
 					state = "Ясно";
 					break;
+				case "Fog":
+					state = "Дымка";
+					break;
 				case "Mist":
 					state = "Туман";
+					break;
+				default:
+					state = "Облачно";
 			}
-		CurrentWeather = state + ', ' + sign + temperature + "C";
+		CurrentWeather = state + ', ' + sign + temperature + Unit;
 	}
 	
 	else
@@ -171,15 +224,19 @@ function Update_Info(){
 
 Pebble.addEventListener("showConfiguration",
   function(e) {
-    //console.log('SmartFace [phone]: Configuration is open');
-    Pebble.openURL("http://grakovne.org/pebble/SmartFace/AppConfig.php?Location=" + Location + "&Info_Updates_Frequency=" + Info_Updates_Frequency + "&Hourly_Vibe=" + Hourly_Vibe + "&BT_Vibe=" + BT_Vibe + "&Add_String=" + Add_String + "&Language=" + Language + "&Inverted=" + Inverted + "&Hide_Weather=" + Hide_Weather + "&Charge_Vibe=" + Charge_Vibe + "&Hide_Battery=" + Hide_Battery + "&Hide_BT=" + Hide_BT);
-  }
+    try {
+		Pebble.openURL("http://grakovne.org/pebble/SmartFace/AppConfig_3_0.php?Location=" + Location + "&Info_Updates_Frequency=" + Info_Updates_Frequency + "&Hourly_Vibe=" + Hourly_Vibe + "&BT_Vibe=" + BT_Vibe + "&Add_String=" + Add_String + "&Language=" + Language + "&Inverted=" + Inverted + "&Hide_Weather=" + Hide_Weather + "&Charge_Vibe=" + Charge_Vibe + "&Hide_Battery=" + Hide_Battery + "&Hide_BT=" + Hide_BT + "&Temp_Units=" + Temp_Units + "&Night_Mode=" + Night_Mode + "&Night_Start=" + Night_Hours_On + ":" + Night_Mins_On + "&Night_Finish=" + Night_Hours_Off + ":" + Night_Mins_Off + "&Shake_update=" + Shake_Update);
+		}
+	catch (err) {
+		Pebble.openURL("http://grakovne.org/pebble/SmartFace/AppConfig_3_0.php");
+		}
+	}
 );
 
 Pebble.addEventListener("webviewclosed",
   function(e) {
     var configuration = JSON.parse(decodeURIComponent(e.response));
-  
+	
 	localStorage.setItem(Location_key, configuration.Location);
 	
 	localStorage.setItem(Hourly_Vibe_key, configuration.Hourly_Vibe);
@@ -201,7 +258,21 @@ Pebble.addEventListener("webviewclosed",
 	localStorage.setItem(Hide_Battery_key, configuration.Hide_Battery);
 	
 	localStorage.setItem(Hide_BT_key, configuration.Hide_BT);
-	 
+
+	localStorage.setItem(Temp_Units_key, configuration.Temp_Units);
+	
+	localStorage.setItem(Night_Mode_key, configuration.Night_Mode);
+	  
+	localStorage.setItem(Shake_Update_key, configuration.Shake_update);
+	
+    localStorage.setItem(Night_Hours_On_key, configuration.Night_Start.split(":")[0]);
+	  
+	localStorage.setItem(Night_Mins_On_key, configuration.Night_Start.split(":")[1]);
+   
+	localStorage.setItem(Night_Hours_Off_key, configuration.Night_Finish.split(":")[0]);
+	  
+  	localStorage.setItem(Night_Mins_Off_key, configuration.Night_Finish.split(":")[1]);
+	  
 	ReadSettings();
 	SendSettings();
 	Update_Info();

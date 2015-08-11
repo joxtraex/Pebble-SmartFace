@@ -10,7 +10,11 @@
         "HOURLY_VIBE": 1,
         "INFO_UPDATES_FREQUENCY": 3,
         "INVERTED": 6,
-        "LANGUAGE": 5
+        "LANGUAGE": 5,
+        "NIGHT_FINISH": 13,
+        "NIGHT_MODE": 11,
+        "NIGHT_START": 12,
+        "SHAKE_UPDATE": 14
     },
     "capabilities": [
         "configurable"
@@ -20,6 +24,16 @@
     "projectType": "native",
     "resources": {
         "media": [
+            {
+                "file": "images/Updating_Err.png",
+                "name": "UPDATING_ERROR_IMAGE",
+                "type": "png"
+            },
+            {
+                "file": "images/Updating.png",
+                "name": "UPDATING_IMAGE",
+                "type": "png"
+            },
             {
                 "file": "images/icon.png",
                 "menuIcon": true,
@@ -72,15 +86,9 @@
                 "type": "png"
             },
             {
-                "characterRegex": "[ -~ \u0410-\u042f \u0430-\u044f]",
+                "characterRegex": "[0-9%OKLSHET]",
                 "file": "fonts/imagine_font.ttf",
-                "name": "IMAGINE_TIME_14",
-                "type": "font"
-            },
-            {
-                "characterRegex": "[ 0-9:]",
-                "file": "fonts/imagine_font.ttf",
-                "name": "IMAGINE_TIME_37",
+                "name": "IMAGINE_TIME_12",
                 "type": "font"
             },
             {
@@ -90,9 +98,15 @@
                 "type": "font"
             },
             {
-                "characterRegex": "[0-9%OKLSHET]",
+                "characterRegex": "[ 0-9:]",
                 "file": "fonts/imagine_font.ttf",
-                "name": "IMAGINE_TIME_12",
+                "name": "IMAGINE_TIME_37",
+                "type": "font"
+            },
+            {
+                "characterRegex": "[ -~ \u0410-\u042f \u0430-\u044f]",
+                "file": "fonts/imagine_font.ttf",
+                "name": "IMAGINE_TIME_14",
                 "type": "font"
             },
             {

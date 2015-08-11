@@ -9,6 +9,8 @@
 #define ENGLISH_LANG                0
 #define RUSSIAN_LANG                1
 
+#define RECEIVING_LATENCY           15000	
+	
 #define Hourly_Vibe_key             1
 #define BT_Vibe_key                 2
 #define Info_Updates_Frequency_key  3
@@ -21,6 +23,10 @@
 #define Weather_Text_key            10
 #define AddInfo_Text_key            11
 #define Hide_Weather_key            12
+#define Night_Mode_key              13
+#define Night_Start_key             14
+#define Night_Finish_key            15
+#define Shake_Update_key            16
 	
 Window *MainWindow;
 TextLayer *Time_Text;
@@ -42,11 +48,14 @@ GFont Time_Font;
 GFont Date_Font;
 GFont CWeather_Font;
 
-static bool JustRun_Flag = 1;
-static bool IsConnected_Flag = 1;
+static bool JustRun_Flag       = 1;
+static bool IsConnected_Flag   = 1;
+static bool IsNight_Flag       = 0;
 
 time_t now;
 struct tm *current_time;
+
+AppTimer* IsReceiving;
 
 static char Time[] = "00:00";
 static char Date[] = "26.06.1996";
@@ -62,6 +71,9 @@ static inline void UpdateBattery(BatteryChargeState State);
 static inline void UpdateTime(struct tm* CurrentTime, TimeUnits units_changed);
 static inline void UpdateDate(struct tm* CurrentTime, TimeUnits units_changed);
 static inline void Init_Display(void);
+static inline void ReadSettings(void);
+static inline void Shake_Handler(AccelAxisType axis, int32_t direction);
+void Answer_Error();
 
 static const uint32_t Battery_Icons[] = {
 	RESOURCE_ID_BAT_ICON_0, 
@@ -131,6 +143,10 @@ enum {
 	HIDE_BATTERY             = 8,
 	HIDE_BT                  = 9,
 	HIDE_WEATHER             = 10,
+	NIGHT_MODE               = 11,
+	NIGHT_START              = 12,
+	NIGHT_FINISH             = 13,
+	SHAKE_UPDATE             = 14,
 };
 
 static struct {
@@ -145,14 +161,31 @@ static struct {
 	bool Hide_Battery;
 	bool Hide_BT;
 	bool Hide_Weather;
+	bool Night_Mode;
+	bool Shake_Update;
+	int Night_Start;
+	int Night_Finish;
 } Settings;
+
+void Answer_Error(){
+	gbitmap_destroy(BT); 
+	BT = gbitmap_create_with_resource(RESOURCE_ID_UPDATING_ERROR_IMAGE); 
+	bitmap_layer_set_bitmap(BT_Image, BT);
+	layer_mark_dirty((Layer *)BT_Image);
+}
 
 static void Process_Received_Data(DictionaryIterator *iter, void *context){
 	
 	Tuple *t = dict_read_first(iter);
+	
+	gbitmap_destroy(BT); 
+	BT = gbitmap_create_with_resource(RESOURCE_ID_UPDATING_IMAGE); 
+	bitmap_layer_set_bitmap(BT_Image, BT);
+	layer_mark_dirty((Layer *)BT_Image);
+	
 	 while(t != NULL){
 		char key = t->key;
-        char value = t->value->int32;
+        int value = t->value->int32;
 		static char string_value[32];
 		strcpy(string_value, t->value->cstring);	 
 		 switch (key){
@@ -162,8 +195,6 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 			 			strcpy(Settings.Weather_Text, string_value);
 			 			persist_write_string(Weather_Text_key, string_value);
  						text_layer_set_text(CWeather_Text, Settings.Weather_Text); 
-				
-			 			//APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Weather was updated!");
 					}
 			 
 			 	break; 
@@ -174,8 +205,6 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 			 			strcpy(Settings.AddInfo_Text, string_value);
 			 			persist_write_string(AddInfo_Text_key, string_value);
  						text_layer_set_text(AddInfo_Text, Settings.AddInfo_Text); 
-					
-			 			//APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Additional info was updated!");
 				}
 			 
 			 	break;
@@ -184,8 +213,6 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 			 	
 			 	Settings.Hourly_Vibe = value;
 			 	persist_write_bool(Hourly_Vibe_key, Settings.Hourly_Vibe);
-			 
-			 	//APP_LOG(APP_LOG_LEVEL_INFO, "Hourly vibe applied");
 			 	
 			 	break;
 			 
@@ -194,10 +221,41 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 			 	Settings.BT_Vibe = value;
 				persist_write_bool(BT_Vibe_key, Settings.BT_Vibe);
 			 
-			 	//APP_LOG(APP_LOG_LEVEL_INFO, "BT vibe applied");
+				break;
 			 
-				 break;
+			 case NIGHT_MODE:
+			 	
+			 	Settings.Night_Mode = value;
+			 	persist_write_bool(Night_Mode_key, Settings.Night_Mode);
 			 
+				break;
+			 
+			 case NIGHT_START:
+			 	
+			 	Settings.Night_Start = value;
+			 	persist_write_int(Night_Start_key, Settings.Night_Start);
+				 
+			 	break;
+			 
+			  case NIGHT_FINISH:
+			 	
+			 	Settings.Night_Finish = value;
+			 	persist_write_int(Night_Finish_key, Settings.Night_Finish);
+			 
+				break;
+			 
+			 case SHAKE_UPDATE:
+			 	
+			 	Settings.Shake_Update = value;
+			 	persist_write_int(Shake_Update_key, Settings.Shake_Update);
+			 	
+			 	if (Settings.Shake_Update == 1)
+					accel_tap_service_subscribe(Shake_Handler);
+			 	else
+					accel_tap_service_unsubscribe();
+			 	
+				break;
+
 			 case LANGUAGE:
 			 	
 			 	if (value < 2){
@@ -205,8 +263,6 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 					persist_write_bool(Language_key, Settings.Language);
 				}
 			 	Init_Display();
-					
-			 	//APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Language applied");
 			 
 			 	break;
 				
@@ -217,8 +273,6 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 					persist_write_bool(Inverted_key, Settings.Inverted);
 				}
 			 	SetColors(Settings.Inverted);
-					
-			 	//APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Window color mode applied");
 			 
 			 	break;
 			 
@@ -229,8 +283,6 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 					persist_write_bool(Charge_Vibe_key, Settings.Charge_Vibe);
 				}
 			 
-			 	//APP_LOG(APP_LOG_LEVEL_INFO, "Charge vibe applied");
-			 
 			 	break;
 			 
 			 case HIDE_BATTERY:
@@ -238,8 +290,6 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 					Settings.Hide_Battery = value;
 					persist_write_bool(Hide_Battery_key, Settings.Hide_Battery);
 					SetBarText(Settings.Hide_Battery, Settings.Hide_BT, Settings.Hide_Weather);
-					
-					//APP_LOG(APP_LOG_LEVEL_INFO, "Hide battery state applied");
 				}
 			 	
 			 	break;
@@ -249,8 +299,6 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 					Settings.Hide_BT = value;
 					persist_write_bool(Hide_BT_key, Settings.Hide_BT);
 					SetBarText(Settings.Hide_Battery, Settings.Hide_BT, Settings.Hide_Weather);
-					
-					//APP_LOG(APP_LOG_LEVEL_INFO, "Hide BT state applied");
 				}
 			 	
 			 	break;
@@ -261,8 +309,6 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 					Settings.Hide_Weather = value;
 					persist_write_bool(Hide_Weather_key, Settings.Hide_Weather);
 					SetBarText(Settings.Hide_Battery, Settings.Hide_BT, Settings.Hide_Weather);
-					
-					//APP_LOG(APP_LOG_LEVEL_INFO, "Hide weather state applied");
 				}
 			 
 			 case INFO_UPDATES_FREQUENCY:
@@ -271,13 +317,17 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 			 	persist_write_int(Info_Updates_Frequency_key, Settings.Info_Updates_Frequency);
 			 	if (Settings.Info_Updates_Frequency < 10)
 					app_timer_register(MILLS_IN_HOUR / Settings.Info_Updates_Frequency, UpdateWeather, 0);
-				else app_timer_register(MILLS_IN_HOUR, UpdateWeather, 0);
-		 		
-				//APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Info Refresh applied");
-			 
+				else app_timer_register(MILLS_IN_HOUR, UpdateWeather, 0);		 
 		 }	 
         t = dict_read_next(iter);
     }	
+	
+	app_timer_cancel(IsReceiving);
+	
+	gbitmap_destroy(BT); 
+	BT = gbitmap_create_with_resource(BT_Icons[IsConnected_Flag]); 
+	bitmap_layer_set_bitmap(BT_Image, BT);
+	layer_mark_dirty((Layer *)BT_Image);
 }
 
 static inline void ReadSettings(){
@@ -337,6 +387,26 @@ static inline void ReadSettings(){
 		Settings.Hide_Weather = persist_read_int(Hide_Weather_key);
 	else
 		Settings.Hide_Weather = 0;
+	
+	if (persist_exists(Shake_Update_key)) 
+		Settings.Shake_Update = persist_read_int(Shake_Update_key);
+	else
+		Settings.Shake_Update = 1;
+	
+	if (persist_exists(Night_Mode_key)) 
+		Settings.Night_Mode = persist_read_int(Night_Mode_key);
+	else
+		Settings.Night_Mode = 0;
+	
+	if (persist_exists(Night_Start_key)) 
+		Settings.Night_Start = persist_read_int(Night_Start_key);
+	else
+		Settings.Night_Start = 0;
+	
+	if (persist_exists(Night_Finish_key)) 
+		Settings.Night_Finish = persist_read_int(Night_Finish_key);
+	else
+		Settings.Night_Finish = 0;
 }
 
 static inline void send_int(uint8_t key, uint8_t cmd){
@@ -347,19 +417,27 @@ static inline void send_int(uint8_t key, uint8_t cmd){
     dict_write_tuplet(iter, &value);
  
     app_message_outbox_send();
-	
-	//APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Data was sended!");
+}
+
+static inline void Shake_Handler(AccelAxisType axis, int32_t direction){
+	if (IsConnected_Flag)
+		UpdateWeather();
 }
 
 static inline void UpdateWeather(){
-	//APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: Info is updated");
 	
 	if (!IsConnected_Flag){
 		text_layer_set_text(CWeather_Text, OfflineNames[Settings.Language]);
 	}
 	
-	else if (!JustRun_Flag) {
+	else if ( (!JustRun_Flag)&&(!IsNight_Flag) ) {
+		gbitmap_destroy(BT); 
+		BT = gbitmap_create_with_resource(RESOURCE_ID_UPDATING_IMAGE); 
+		bitmap_layer_set_bitmap(BT_Image, BT);
+		layer_mark_dirty((Layer *)BT_Image);
+		
 		psleep(1000);
+		IsReceiving = app_timer_register(RECEIVING_LATENCY, Answer_Error, 0);
 		send_int(CURRENT_WEATHER, 1);
 	}
 	
@@ -372,31 +450,31 @@ static inline void UpdateWeather(){
 static inline void UpdateConnection(bool Connected){
 	IsConnected_Flag = Connected;
 	
-	if ( (!JustRun_Flag)&&(Settings.BT_Vibe) )
+	if ( (!JustRun_Flag)&&(Settings.BT_Vibe)&&(!IsNight_Flag) )
 		vibes_long_pulse();
 	
 	if (Connected)
 		UpdateWeather();
+	else 
+		app_timer_cancel(IsReceiving);
 	
 	gbitmap_destroy(BT); 
 	BT = gbitmap_create_with_resource(BT_Icons[Connected]); 
 	bitmap_layer_set_bitmap(BT_Image, BT);
 	
 	text_layer_set_text(Connection_Text, BTNames[Settings.Language][Connected]);
-	
-	//APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: BT-Connection was updated!");
 }
 
 static inline void UpdateBattery(BatteryChargeState State){
 	static char Percents[] = "100%";
 	static bool Vibe_Flag;
 	
-	if ( (!Vibe_Flag) && (State.is_plugged) && (Settings.Charge_Vibe) && (!JustRun_Flag)){
+	if ( (!Vibe_Flag) && (State.is_plugged) && (Settings.Charge_Vibe) && (!JustRun_Flag) && (!IsNight_Flag)){
 		vibes_short_pulse();
 		Vibe_Flag = 1;
 	}
 	
-	if ( (Vibe_Flag) && (!State.is_plugged) && (Settings.Charge_Vibe) && (!JustRun_Flag) ) {
+	if ( (Vibe_Flag) && (!State.is_plugged) && (Settings.Charge_Vibe) && (!JustRun_Flag) && (!IsNight_Flag) ) {
 		vibes_short_pulse();
 		Vibe_Flag = 0;
 	}
@@ -409,6 +487,25 @@ static inline void UpdateBattery(BatteryChargeState State){
 }
 
 static inline void UpdateTime(struct tm* CurrentTime, TimeUnits units_changed){
+	
+	IsNight_Flag = 0;
+	if (Settings.Night_Mode){
+		int Time_In_Mins = CurrentTime -> tm_hour * 60 + CurrentTime -> tm_min;
+		
+		if (Settings.Night_Start > Settings.Night_Finish){
+			if ( (Time_In_Mins >= Settings.Night_Start) || (Time_In_Mins <= Settings.Night_Finish) ) {
+				IsNight_Flag = 1;
+			}
+		}
+		
+		if (Settings.Night_Start < Settings.Night_Finish){
+			if ( (Time_In_Mins >= Settings.Night_Start) && (Time_In_Mins <= Settings.Night_Finish) ){
+				IsNight_Flag = 1;
+			}
+			
+		}
+	}
+	
 	strftime(Time, sizeof(Time), "%H:%M", CurrentTime);
 	text_layer_set_text(Time_Text, Time);
 	
@@ -416,7 +513,7 @@ static inline void UpdateTime(struct tm* CurrentTime, TimeUnits units_changed){
 		UpdateDate(CurrentTime, SECOND_UNIT);
 	}
 	
-	if ( (!(CurrentTime -> tm_min)) && (!JustRun_Flag) && (Settings.Hourly_Vibe) )
+	if ( (!(CurrentTime -> tm_min)) && (!JustRun_Flag) && (Settings.Hourly_Vibe) & (!IsNight_Flag))
 		vibes_double_pulse();
 }
 
@@ -450,7 +547,6 @@ int main(void) {
 	/*communication with phone*/
 	app_message_register_inbox_received(Process_Received_Data);
 	app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
-	//APP_LOG(APP_LOG_LEVEL_INFO, "SmartFace: App was opened!");
 	
 	/*Application Settings*/
 	ReadSettings();
@@ -469,16 +565,19 @@ int main(void) {
 	bluetooth_connection_service_subscribe(UpdateConnection);
 	battery_state_service_subscribe(UpdateBattery);
 	
+	if (Settings.Shake_Update == 1)
+		accel_tap_service_subscribe(Shake_Handler);
+	
 	window_stack_push(MainWindow, true);
 	JustRun_Flag = 0;
 	
   	app_event_loop();
 	
 	/*unsubcribing from services*/
-	//APP_LOG(APP_LOG_LEVEL_INFO, "SmaftFace: App is closed...");
   	tick_timer_service_unsubscribe(); 
 	battery_state_service_unsubscribe();
 	bluetooth_connection_service_unsubscribe();
+	accel_tap_service_unsubscribe();
 	
 	/*Closing phone connection*/
 	app_message_deregister_callbacks();
