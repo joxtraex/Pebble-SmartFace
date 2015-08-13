@@ -12,7 +12,10 @@
         "INVERTED": 6,
         "LANGUAGE": 5,
         "NIGHT_FINISH": 13,
+        "NIGHT_INVERT_DISPLAY": 16,
         "NIGHT_MODE": 11,
+        "NIGHT_OFFLINE": 17,
+        "NIGHT_SILENT": 15,
         "NIGHT_START": 12,
         "SHAKE_UPDATE": 14
     },
@@ -137,7 +140,7 @@
         "aplite"
     ],
     "uuid": "55ff601c-2ac2-482d-ba73-342f77bcd648",
-    "versionLabel": "2.1",
+    "versionLabel": "3.0",
     "watchapp": {
         "watchface": true
     }

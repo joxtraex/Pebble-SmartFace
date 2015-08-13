@@ -27,6 +27,9 @@
 #define Night_Start_key             14
 #define Night_Finish_key            15
 #define Shake_Update_key            16
+#define Night_Silent_key            17
+#define Night_Invert_Display_key    18
+#define Night_Offline_key           19
 	
 Window *MainWindow;
 TextLayer *Time_Text;
@@ -50,7 +53,9 @@ GFont CWeather_Font;
 
 static bool JustRun_Flag       = 1;
 static bool IsConnected_Flag   = 1;
+static bool IsSilent_Flag      = 0;
 static bool IsNight_Flag       = 0;
+static bool IsOffline_Flag     = 0;
 
 time_t now;
 struct tm *current_time;
@@ -73,7 +78,7 @@ static inline void UpdateDate(struct tm* CurrentTime, TimeUnits units_changed);
 static inline void Init_Display(void);
 static inline void ReadSettings(void);
 static inline void Shake_Handler(AccelAxisType axis, int32_t direction);
-void Answer_Error();
+static inline void Answer_Error();
 
 static const uint32_t Battery_Icons[] = {
 	RESOURCE_ID_BAT_ICON_0, 
@@ -147,6 +152,9 @@ enum {
 	NIGHT_START              = 12,
 	NIGHT_FINISH             = 13,
 	SHAKE_UPDATE             = 14,
+	NIGHT_SILENT             = 15,
+	NIGHT_INVERT_DISPLAY     = 16,
+	NIGHT_OFFLINE            = 17,
 };
 
 static struct {
@@ -163,6 +171,9 @@ static struct {
 	bool Hide_Weather;
 	bool Night_Mode;
 	bool Shake_Update;
+	bool Night_Silent;
+	bool Night_Invert_Display;
+	bool Night_Offline;
 	int Night_Start;
 	int Night_Finish;
 } Settings;
@@ -230,6 +241,27 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 			 
 				break;
 			 
+			 case NIGHT_SILENT:
+			 	
+			 	Settings.Night_Silent = value;
+			 	persist_write_bool(Night_Silent_key, Settings.Night_Silent);
+			 
+				break;
+			 
+			 case NIGHT_OFFLINE:
+			 	
+			 	Settings.Night_Offline = value;
+			 	persist_write_bool(Night_Offline_key, Settings.Night_Offline);
+			 
+				break;
+			 
+			 case NIGHT_INVERT_DISPLAY:
+			 	
+			 	Settings.Night_Invert_Display = value;
+			 	persist_write_bool(Night_Invert_Display_key, Settings.Night_Invert_Display);
+			 
+				break;
+			 
 			 case NIGHT_START:
 			 	
 			 	Settings.Night_Start = value;
@@ -272,7 +304,13 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 					Settings.Inverted = value;
 					persist_write_bool(Inverted_key, Settings.Inverted);
 				}
-			 	SetColors(Settings.Inverted);
+			 
+			 	if ( (IsNight_Flag) && (Settings.Night_Invert_Display) )
+					SetColors(!Settings.Inverted);
+			 	else
+					SetColors(Settings.Inverted);
+			 
+			 	Init_Display();
 			 
 			 	break;
 			 
@@ -327,7 +365,7 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 	gbitmap_destroy(BT); 
 	BT = gbitmap_create_with_resource(BT_Icons[IsConnected_Flag]); 
 	bitmap_layer_set_bitmap(BT_Image, BT);
-	layer_mark_dirty((Layer *)BT_Image);
+	Init_Display();
 }
 
 static inline void ReadSettings(){
@@ -407,6 +445,22 @@ static inline void ReadSettings(){
 		Settings.Night_Finish = persist_read_int(Night_Finish_key);
 	else
 		Settings.Night_Finish = 0;
+	
+	if (persist_exists(Night_Silent_key)) 
+		Settings.Night_Silent = persist_read_int(Night_Silent_key);
+	else
+		Settings.Night_Silent = 1;
+	
+	if (persist_exists(Night_Invert_Display_key)) 
+		Settings.Night_Invert_Display = persist_read_int(Night_Invert_Display_key);
+	else
+		Settings.Night_Invert_Display = 1;
+	
+	if (persist_exists(Night_Offline_key)) 
+		Settings.Night_Offline = persist_read_int(Night_Offline_key);
+	else
+		Settings.Night_Offline = 1;
+	
 }
 
 static inline void send_int(uint8_t key, uint8_t cmd){
@@ -430,7 +484,7 @@ static inline void UpdateWeather(){
 		text_layer_set_text(CWeather_Text, OfflineNames[Settings.Language]);
 	}
 	
-	else if ( (!JustRun_Flag)&&(!IsNight_Flag) ) {
+	else if ( (!JustRun_Flag)&&(!IsOffline_Flag) ) {
 		gbitmap_destroy(BT); 
 		BT = gbitmap_create_with_resource(RESOURCE_ID_UPDATING_IMAGE); 
 		bitmap_layer_set_bitmap(BT_Image, BT);
@@ -450,7 +504,7 @@ static inline void UpdateWeather(){
 static inline void UpdateConnection(bool Connected){
 	IsConnected_Flag = Connected;
 	
-	if ( (!JustRun_Flag)&&(Settings.BT_Vibe)&&(!IsNight_Flag) )
+	if ( (!JustRun_Flag)&&(Settings.BT_Vibe)&&(!IsSilent_Flag) )
 		vibes_long_pulse();
 	
 	if (Connected)
@@ -469,12 +523,12 @@ static inline void UpdateBattery(BatteryChargeState State){
 	static char Percents[] = "100%";
 	static bool Vibe_Flag;
 	
-	if ( (!Vibe_Flag) && (State.is_plugged) && (Settings.Charge_Vibe) && (!JustRun_Flag) && (!IsNight_Flag)){
+	if ( (!Vibe_Flag) && (State.is_plugged) && (Settings.Charge_Vibe) && (!JustRun_Flag) && (!IsSilent_Flag)){
 		vibes_short_pulse();
 		Vibe_Flag = 1;
 	}
 	
-	if ( (Vibe_Flag) && (!State.is_plugged) && (Settings.Charge_Vibe) && (!JustRun_Flag) && (!IsNight_Flag) ) {
+	if ( (Vibe_Flag) && (!State.is_plugged) && (Settings.Charge_Vibe) && (!JustRun_Flag) && (!IsSilent_Flag) ) {
 		vibes_short_pulse();
 		Vibe_Flag = 0;
 	}
@@ -489,7 +543,9 @@ static inline void UpdateBattery(BatteryChargeState State){
 static inline void UpdateTime(struct tm* CurrentTime, TimeUnits units_changed){
 	
 	IsNight_Flag = 0;
-	if (Settings.Night_Mode){
+	static bool Not_Inverted = 1;
+	
+	if (Settings.Night_Mode) {
 		int Time_In_Mins = CurrentTime -> tm_hour * 60 + CurrentTime -> tm_min;
 		
 		if (Settings.Night_Start > Settings.Night_Finish){
@@ -506,6 +562,26 @@ static inline void UpdateTime(struct tm* CurrentTime, TimeUnits units_changed){
 		}
 	}
 	
+	if ( (IsNight_Flag)&&(Settings.Night_Silent) )
+		IsSilent_Flag = 1;
+	else
+		IsSilent_Flag = 0;
+	
+	if ( (IsNight_Flag)&&(Settings.Night_Offline) )
+		IsOffline_Flag = 1;
+	else
+		IsOffline_Flag = 0;
+	
+	if ( (IsNight_Flag) && (Settings.Night_Invert_Display) && (Not_Inverted)){
+		SetColors(!Settings.Inverted);
+		Not_Inverted = 0;
+	}
+	
+	if ( (!IsNight_Flag) && (!Not_Inverted) ){
+		SetColors(Settings.Inverted);
+		Not_Inverted = 1;
+	}
+	
 	strftime(Time, sizeof(Time), "%H:%M", CurrentTime);
 	text_layer_set_text(Time_Text, Time);
 	
@@ -513,7 +589,7 @@ static inline void UpdateTime(struct tm* CurrentTime, TimeUnits units_changed){
 		UpdateDate(CurrentTime, SECOND_UNIT);
 	}
 	
-	if ( (!(CurrentTime -> tm_min)) && (!JustRun_Flag) && (Settings.Hourly_Vibe) & (!IsNight_Flag))
+	if ( (!(CurrentTime -> tm_min)) && (!JustRun_Flag) && (Settings.Hourly_Vibe) & (!IsSilent_Flag))
 		vibes_double_pulse();
 }
 

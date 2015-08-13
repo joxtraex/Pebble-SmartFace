@@ -16,6 +16,9 @@ var Night_Hours_Off;
 var Night_Mins_On;
 var Night_Mins_Off;
 var Shake_Updade;
+var Night_Invert_Display;
+var Night_Silent;
+var Night_Offline;
 
 var Location_key                    = 1;
 var Hourly_Vibe_key                 = 2;
@@ -35,6 +38,11 @@ var Night_Hours_Off_key             =15;
 var Night_Mins_On_key               =16;
 var Night_Mins_Off_key              =17;
 var Shake_Update_key                =18;
+var Night_Invert_Display_key        =19;
+var Night_Silent_key                =20;
+var Night_Offline_key               =21;
+
+var Current_Version = 3;
 
 function HTTPGET(url) {
     var req = new XMLHttpRequest();
@@ -48,6 +56,14 @@ function HTTPGET(url) {
 			return req.responseText;
 	}
 	return 0;
+}
+
+function CheckVersion(){
+	var Notification_Text = [["New version released!", "You can download it from PebbleStore now"], ["Новая версия!", "Вы можете скачать ее из PebbleStore"]];
+	var Latest_Version = parseInt(HTTPGET("http://grakovne.org/pebble/SmartFace/latest_version.html") );
+	if ( (Latest_Version != 0) && (Latest_Version > Current_Version) )
+		Pebble.showSimpleNotificationOnPebble(Notification_Text[Language][0], Notification_Text[Language][1]);
+	
 }
 
 function ReadSettings(){
@@ -69,6 +85,9 @@ function ReadSettings(){
 	Night_Mins_On = localStorage.getItem(Night_Mins_On_key);
 	Night_Mins_Off = localStorage.getItem(Night_Mins_Off_key);
 	Shake_Update = localStorage.getItem(Shake_Update_key);
+	Night_Silent = localStorage.getItem(Night_Silent_key);
+	Night_Invert_Display = localStorage.getItem(Night_Invert_Display_key);
+	Night_Offline = localStorage.getItem(Night_Offline_key);
 	
 	if (!Location)
 		Location = "London";
@@ -106,6 +125,12 @@ function ReadSettings(){
 		Night_Mins_Off = 0;	
 	if (!Shake_Update)
 		Shake_Update = 1;	
+	if (!Night_Silent)
+		Night_Silent = 1;
+	if (!Night_Invert_Display)
+		Night_Invert_Display = 1;
+	if (!Night_Offline)
+		Night_Offline = 1;
 }
 
 function SendSettings(){
@@ -127,6 +152,9 @@ function SendSettings(){
 							'NIGHT_START'             : parseInt(Night_Start),
 							'NIGHT_FINISH'            : parseInt(Nigth_Finish),
 							'SHAKE_UPDATE'            : parseInt(Shake_Update),
+							'NIGHT_SILENT'            : parseInt(Night_Silent),
+							'NIGHT_INVERT_DISPLAY'    : parseInt(Night_Invert_Display),
+							'NIGHT_OFFLINE'           : parseInt(Night_Offline),
 							}); 
 }
 
@@ -225,7 +253,7 @@ function Update_Info(){
 Pebble.addEventListener("showConfiguration",
   function(e) {
     try {
-		Pebble.openURL("http://grakovne.org/pebble/SmartFace/AppConfig_3_0.php?Location=" + Location + "&Info_Updates_Frequency=" + Info_Updates_Frequency + "&Hourly_Vibe=" + Hourly_Vibe + "&BT_Vibe=" + BT_Vibe + "&Add_String=" + Add_String + "&Language=" + Language + "&Inverted=" + Inverted + "&Hide_Weather=" + Hide_Weather + "&Charge_Vibe=" + Charge_Vibe + "&Hide_Battery=" + Hide_Battery + "&Hide_BT=" + Hide_BT + "&Temp_Units=" + Temp_Units + "&Night_Mode=" + Night_Mode + "&Night_Start=" + Night_Hours_On + ":" + Night_Mins_On + "&Night_Finish=" + Night_Hours_Off + ":" + Night_Mins_Off + "&Shake_update=" + Shake_Update);
+		Pebble.openURL("http://grakovne.org/pebble/SmartFace/AppConfig_3_0.php?Location=" + Location + "&Info_Updates_Frequency=" + Info_Updates_Frequency + "&Hourly_Vibe=" + Hourly_Vibe + "&BT_Vibe=" + BT_Vibe + "&Add_String=" + Add_String + "&Language=" + Language + "&Inverted=" + Inverted + "&Hide_Weather=" + Hide_Weather + "&Charge_Vibe=" + Charge_Vibe + "&Hide_Battery=" + Hide_Battery + "&Hide_BT=" + Hide_BT + "&Temp_Units=" + Temp_Units + "&Night_Mode=" + Night_Mode + "&Night_Start=" + Night_Hours_On + ":" + Night_Mins_On + "&Night_Finish=" + Night_Hours_Off + ":" + Night_Mins_Off + "&Shake_update=" + Shake_Update + "&Night_Silent=" + Night_Silent + "&Night_Invert_Display=" + Night_Invert_Display + "&Night_Offline=" + Night_Offline);
 		}
 	catch (err) {
 		Pebble.openURL("http://grakovne.org/pebble/SmartFace/AppConfig_3_0.php");
@@ -264,6 +292,12 @@ Pebble.addEventListener("webviewclosed",
 	localStorage.setItem(Night_Mode_key, configuration.Night_Mode);
 	  
 	localStorage.setItem(Shake_Update_key, configuration.Shake_update);
+	  
+	localStorage.setItem(Night_Silent_key, configuration.Night_Silent);
+	  
+	localStorage.setItem(Night_Offline_key, configuration.Night_Offline);
+	  
+	localStorage.setItem(Night_Invert_Display_key, configuration.Night_Invert_Display);
 	
     localStorage.setItem(Night_Hours_On_key, configuration.Night_Start.split(":")[0]);
 	  
@@ -294,6 +328,7 @@ Pebble.addEventListener("ready",
 	ReadSettings();
 	SendSettings();
 	Update_Info();  
+	CheckVersion();
 	//console.log('SmartFace [phone]: App running OK...');
   }
 );
