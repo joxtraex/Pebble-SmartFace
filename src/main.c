@@ -504,7 +504,7 @@ static inline void UpdateWeather(){
 static inline void UpdateConnection(bool Connected){
 	IsConnected_Flag = Connected;
 	
-	if ( (!JustRun_Flag)&&(Settings.BT_Vibe)&&(!IsSilent_Flag) )
+	if ( (!JustRun_Flag)&&(Settings.BT_Vibe)&& (!((IsNight_Flag) && (Settings.Night_Silent) ) ) ) // experimantal. May save the battery?
 		vibes_long_pulse();
 	
 	if (Connected)
@@ -536,7 +536,12 @@ static inline void UpdateBattery(BatteryChargeState State){
 	snprintf(Percents, sizeof(Percents), "%d%%", State.charge_percent);
 	text_layer_set_text(Battery_Text, Percents);
 	gbitmap_destroy(BAT); 
-	BAT = gbitmap_create_with_resource(Battery_Icons[State.charge_percent / 10]); 
+	
+	if ( (!State.is_charging) && (State.is_plugged) )
+		BAT = gbitmap_create_with_resource(RESOURCE_ID_BAT_ICON_FULL); 
+	else
+		BAT = gbitmap_create_with_resource(Battery_Icons[State.charge_percent / 10]); 
+	
 	bitmap_layer_set_bitmap(BAT_Image, BAT); 
 }
 

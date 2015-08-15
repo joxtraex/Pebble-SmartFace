@@ -28,6 +28,11 @@
     "resources": {
         "media": [
             {
+                "file": "images/battery_Full.png",
+                "name": "BAT_ICON_FULL",
+                "type": "png"
+            },
+            {
                 "file": "images/Updating_Err.png",
                 "name": "UPDATING_ERROR_IMAGE",
                 "type": "png"
