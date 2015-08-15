@@ -9,7 +9,7 @@
 #define ENGLISH_LANG                0
 #define RUSSIAN_LANG                1
 
-#define RECEIVING_LATENCY           15000	
+#define RECEIVING_LATENCY           60000	
 	
 #define Hourly_Vibe_key             1
 #define BT_Vibe_key                 2
@@ -53,9 +53,7 @@ GFont CWeather_Font;
 
 static bool JustRun_Flag       = 1;
 static bool IsConnected_Flag   = 1;
-static bool IsSilent_Flag      = 0;
 static bool IsNight_Flag       = 0;
-static bool IsOffline_Flag     = 0;
 
 time_t now;
 struct tm *current_time;
@@ -484,7 +482,7 @@ static inline void UpdateWeather(){
 		text_layer_set_text(CWeather_Text, OfflineNames[Settings.Language]);
 	}
 	
-	else if ( (!JustRun_Flag)&&(!IsOffline_Flag) ) {
+	else if ( (!JustRun_Flag)&&(!((IsNight_Flag) && (Settings.Night_Offline))) ) {
 		gbitmap_destroy(BT); 
 		BT = gbitmap_create_with_resource(RESOURCE_ID_UPDATING_IMAGE); 
 		bitmap_layer_set_bitmap(BT_Image, BT);
@@ -504,7 +502,7 @@ static inline void UpdateWeather(){
 static inline void UpdateConnection(bool Connected){
 	IsConnected_Flag = Connected;
 	
-	if ( (!JustRun_Flag)&&(Settings.BT_Vibe)&& (!((IsNight_Flag) && (Settings.Night_Silent) ) ) ) // experimantal. May save the battery?
+	if ( (!JustRun_Flag)&&(Settings.BT_Vibe) && (!((IsNight_Flag) && (Settings.Night_Silent) ) ) ) // experimantal. May save the battery?
 		vibes_long_pulse();
 	
 	if (Connected)
@@ -523,12 +521,12 @@ static inline void UpdateBattery(BatteryChargeState State){
 	static char Percents[] = "100%";
 	static bool Vibe_Flag;
 	
-	if ( (!Vibe_Flag) && (State.is_plugged) && (Settings.Charge_Vibe) && (!JustRun_Flag) && (!IsSilent_Flag)){
+	if ( (!Vibe_Flag) && (State.is_plugged) && (Settings.Charge_Vibe) && (!JustRun_Flag) && (!((IsNight_Flag) && (Settings.Night_Silent) ) ) ){
 		vibes_short_pulse();
 		Vibe_Flag = 1;
 	}
 	
-	if ( (Vibe_Flag) && (!State.is_plugged) && (Settings.Charge_Vibe) && (!JustRun_Flag) && (!IsSilent_Flag) ) {
+	if ( (Vibe_Flag) && (!State.is_plugged) && (Settings.Charge_Vibe) && (!JustRun_Flag)  && (!((IsNight_Flag) && (Settings.Night_Silent) ) ) ) {
 		vibes_short_pulse();
 		Vibe_Flag = 0;
 	}
@@ -567,16 +565,6 @@ static inline void UpdateTime(struct tm* CurrentTime, TimeUnits units_changed){
 		}
 	}
 	
-	if ( (IsNight_Flag)&&(Settings.Night_Silent) )
-		IsSilent_Flag = 1;
-	else
-		IsSilent_Flag = 0;
-	
-	if ( (IsNight_Flag)&&(Settings.Night_Offline) )
-		IsOffline_Flag = 1;
-	else
-		IsOffline_Flag = 0;
-	
 	if ( (IsNight_Flag) && (Settings.Night_Invert_Display) && (Not_Inverted)){
 		SetColors(!Settings.Inverted);
 		Not_Inverted = 0;
@@ -594,7 +582,7 @@ static inline void UpdateTime(struct tm* CurrentTime, TimeUnits units_changed){
 		UpdateDate(CurrentTime, SECOND_UNIT);
 	}
 	
-	if ( (!(CurrentTime -> tm_min)) && (!JustRun_Flag) && (Settings.Hourly_Vibe) & (!IsSilent_Flag))
+	if ( (!(CurrentTime -> tm_min)) && (!JustRun_Flag) && (Settings.Hourly_Vibe)  && (!((IsNight_Flag) && (Settings.Night_Silent) ) ) )
 		vibes_double_pulse();
 }
 
