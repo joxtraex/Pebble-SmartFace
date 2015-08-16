@@ -547,6 +547,7 @@ static inline void UpdateTime(struct tm* CurrentTime, TimeUnits units_changed){
 	
 	IsNight_Flag = 0;
 	static bool Not_Inverted = 1;
+	static bool IsVibed_Flag   = 0;
 	
 	if (Settings.Night_Mode) {
 		int Time_In_Mins = CurrentTime -> tm_hour * 60 + CurrentTime -> tm_min;
@@ -582,8 +583,13 @@ static inline void UpdateTime(struct tm* CurrentTime, TimeUnits units_changed){
 		UpdateDate(CurrentTime, SECOND_UNIT);
 	}
 	
-	if ( (!(CurrentTime -> tm_min)) && (!JustRun_Flag) && (Settings.Hourly_Vibe)  && (!((IsNight_Flag) && (Settings.Night_Silent) ) ) )
+	if ( (!IsVibed_Flag) && (!(CurrentTime -> tm_min)) && (!JustRun_Flag) && (Settings.Hourly_Vibe)  && (!((IsNight_Flag) && (Settings.Night_Silent) ) ) ){
 		vibes_double_pulse();
+		IsVibed_Flag = 1;
+	}
+
+	if ( (CurrentTime -> tm_min == 1) && (IsVibed_Flag) )
+		IsVibed_Flag = 0;
 }
 
 static inline void UpdateDate(struct tm* CurrentTime, TimeUnits units_changed){
@@ -611,6 +617,7 @@ static inline void Init_Display(){
 int main(void) {
 	/*Interface building*/
 	JustRun_Flag = 1;
+	ReadSettings();
 	BuildWindow();
 	
 	/*communication with phone*/
@@ -618,7 +625,6 @@ int main(void) {
 	app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
 	
 	/*Application Settings*/
-	ReadSettings();
 	SetColors(Settings.Inverted);
 	SetBarText(Settings.Hide_Battery, Settings.Hide_BT, Settings.Hide_Weather);
 	Init_Display();
