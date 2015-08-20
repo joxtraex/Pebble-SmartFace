@@ -50,7 +50,7 @@ void SetColors (bool Invert){
 	
 }
 
-void BuildWindow(){
+void BuildWindow(bool Text_Size){
 	MainWindow = window_create();
 	
 	/*BT Icon*/
@@ -82,22 +82,39 @@ void BuildWindow(){
 	
 	/*Week Day Text*/
 	Date_Font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_IMAGINE_TIME_17));
-    Week_Text = text_layer_create(GRect(0, 34, 145, 30)); //20 40
+	if (Text_Size)
+		Week_Text = text_layer_create(GRect(0, 29, 145, 30)); //20 40
+	else
+    	Week_Text = text_layer_create(GRect(0, 34, 145, 30)); //20 40
 	text_layer_set_text_alignment(Week_Text, GTextAlignmentCenter);
 	text_layer_set_font(Week_Text, Date_Font);
 	text_layer_set_background_color(Week_Text, GColorClear);
 	layer_add_child(window_get_root_layer(MainWindow), text_layer_get_layer(Week_Text));
 	
 	/*Time Text*/
-	Time_Font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_IMAGINE_TIME_37));
-  	Time_Text = text_layer_create(GRect(0, 46, 145, 50)); //34
-	text_layer_set_text_alignment(Time_Text, GTextAlignmentCenter);
-	text_layer_set_font(Time_Text, Time_Font);
-	text_layer_set_background_color(Time_Text, GColorClear);
-	layer_add_child(window_get_root_layer(MainWindow), text_layer_get_layer(Time_Text));
 	
+	if (Text_Size){	// large font 
+		Time_Font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_IMAGINE_BIG_43));
+  		Time_Text = text_layer_create(GRect(2, 38, 145, 50)); //34
+		text_layer_set_text_alignment(Time_Text, GTextAlignmentCenter);
+		text_layer_set_font(Time_Text, Time_Font);
+		text_layer_set_background_color(Time_Text, GColorClear);
+		layer_add_child(window_get_root_layer(MainWindow), text_layer_get_layer(Time_Text));
+	}
+	
+	else {
+		Time_Font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_IMAGINE_TIME_37));
+  		Time_Text = text_layer_create(GRect(0, 46, 145, 50)); //34
+		text_layer_set_text_alignment(Time_Text, GTextAlignmentCenter);
+		text_layer_set_font(Time_Text, Time_Font);
+		text_layer_set_background_color(Time_Text, GColorClear);
+		layer_add_child(window_get_root_layer(MainWindow), text_layer_get_layer(Time_Text));
+	}
 	/*Date Text*/
-	Date_Text = text_layer_create(GRect(0, 88, 145, 25)); //75  95
+	if (Text_Size)
+		Date_Text = text_layer_create(GRect(0, 90, 145, 25)); //75  95
+	else
+		Date_Text = text_layer_create(GRect(0, 88, 145, 25)); //75  95
 	text_layer_set_text_alignment(Date_Text, GTextAlignmentCenter);
 	text_layer_set_font(Date_Text, Date_Font);
 	text_layer_set_background_color(Date_Text, GColorClear);

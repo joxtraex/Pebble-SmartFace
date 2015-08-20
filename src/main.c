@@ -30,6 +30,7 @@
 #define Night_Silent_key            17
 #define Night_Invert_Display_key    18
 #define Night_Offline_key           19
+#define Text_Size_key               20
 	
 Window *MainWindow;
 TextLayer *Time_Text;
@@ -63,8 +64,6 @@ AppTimer* IsReceiving;
 static char Time[] = "00:00";
 static char Date[] = "26.06.1996";
 
-static char Buffer_Weather    [24];
-static char Buffer_Add_String [24];
 
 static inline void Process_Received_Data(DictionaryIterator *iter, void *context);
 static inline void send_int(uint8_t key, uint8_t cmd);
@@ -153,12 +152,13 @@ enum {
 	NIGHT_SILENT             = 15,
 	NIGHT_INVERT_DISPLAY     = 16,
 	NIGHT_OFFLINE            = 17,
+	TEXT_SIZE                = 18,
 };
 
 static struct {
 	char Info_Updates_Frequency;
 	char Weather_Text [24];
-	char AddInfo_Text [32];
+	char AddInfo_Text [24];
 	bool Hourly_Vibe;
 	bool BT_Vibe;
 	bool Charge_Vibe;
@@ -172,6 +172,7 @@ static struct {
 	bool Night_Silent;
 	bool Night_Invert_Display;
 	bool Night_Offline;
+	bool Text_Size;
 	int Night_Start;
 	int Night_Finish;
 } Settings;
@@ -195,7 +196,7 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 	 while(t != NULL){
 		char key = t->key;
         int value = t->value->int32;
-		static char string_value[32];
+		static char string_value[24];
 		strcpy(string_value, t->value->cstring);	 
 		 switch (key){
 			 case CURRENT_WEATHER:
@@ -273,6 +274,21 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 			 	persist_write_int(Night_Finish_key, Settings.Night_Finish);
 			 
 				break;
+			 
+			 case TEXT_SIZE:
+			 	
+			 	if (value != Settings.Text_Size){
+			 		Settings.Text_Size = value;
+			 		persist_write_int(Text_Size_key, Settings.Text_Size);
+			 		window_stack_remove(MainWindow, false);
+					DestroyWindow();
+					BuildWindow(Settings.Text_Size);
+					UpdateBattery(battery_state_service_peek());
+					text_layer_set_text(Connection_Text, BTNames[Settings.Language][IsConnected_Flag]);
+					window_stack_push(MainWindow, true);
+				}
+			 	
+			 	break;
 			 
 			 case SHAKE_UPDATE:
 			 	
@@ -459,6 +475,11 @@ static inline void ReadSettings(){
 	else
 		Settings.Night_Offline = 1;
 	
+	if (persist_exists(Text_Size_key)) 
+		Settings.Text_Size = persist_read_int(Text_Size_key);
+	else
+		Settings.Text_Size = 0;
+	
 }
 
 static inline void send_int(uint8_t key, uint8_t cmd){
@@ -502,7 +523,7 @@ static inline void UpdateWeather(){
 static inline void UpdateConnection(bool Connected){
 	IsConnected_Flag = Connected;
 	
-	if ( (!JustRun_Flag)&&(Settings.BT_Vibe) && (!((IsNight_Flag) && (Settings.Night_Silent) ) ) ) // experimantal. May save the battery?
+	if ( (!JustRun_Flag)&&(Settings.BT_Vibe) && (!((IsNight_Flag) && (Settings.Night_Silent) ) ) )
 		vibes_long_pulse();
 	
 	if (Connected)
@@ -548,6 +569,8 @@ static inline void UpdateTime(struct tm* CurrentTime, TimeUnits units_changed){
 	IsNight_Flag = 0;
 	static bool Not_Inverted = 1;
 	static bool IsVibed_Flag   = 0;
+	
+	/*Night detection*/
 	
 	if (Settings.Night_Mode) {
 		int Time_In_Mins = CurrentTime -> tm_hour * 60 + CurrentTime -> tm_min;
@@ -607,18 +630,15 @@ static inline void Init_Display(){
 	UpdateDate(current_time, SECOND_UNIT);
 	
 	/*Set bottom strings*/
-	snprintf(Buffer_Add_String, sizeof(Buffer_Add_String), "%s", Settings.AddInfo_Text);
- 	text_layer_set_text(AddInfo_Text, Buffer_Add_String); 
-	
-	snprintf(Buffer_Weather, sizeof(Buffer_Weather), "%s", Settings.Weather_Text);
- 	text_layer_set_text(CWeather_Text, Buffer_Weather); 
+ 	text_layer_set_text(AddInfo_Text, Settings.AddInfo_Text); 
+ 	text_layer_set_text(CWeather_Text, Settings.Weather_Text); 
 }
 
 int main(void) {
 	/*Interface building*/
 	JustRun_Flag = 1;
 	ReadSettings();
-	BuildWindow();
+	BuildWindow(Settings.Text_Size);
 	
 	/*communication with phone*/
 	app_message_register_inbox_received(Process_Received_Data);
