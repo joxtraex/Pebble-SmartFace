@@ -21,6 +21,7 @@ var Night_Silent;
 var Night_Offline;
 var Custom_Text;
 var Text_Size;
+var Date_Style;
 
 var Location_key                    = 1;
 var Hourly_Vibe_key                 = 2;
@@ -45,6 +46,7 @@ var Night_Silent_key                =20;
 var Night_Offline_key               =21;
 var Custom_Text_key                 =22;
 var Text_Size_key                   =23;
+var Date_Style_key                  =24;
 
 var Current_Version = 3;
 
@@ -94,6 +96,7 @@ function ReadSettings(){
 	Night_Offline = localStorage.getItem(Night_Offline_key);
 	Custom_Text = localStorage.getItem(Custom_Text_key);
 	Text_Size = localStorage.getItem(Text_Size_key);
+	Date_Style = localStorage.getItem(Date_Style_key);
 	
 	if (!Location)
 		Location = "London";
@@ -141,6 +144,8 @@ function ReadSettings(){
 		Custom_Text = "Hello!";
 	if (!Text_Size)
 		Text_Size = 0;
+	if (!Date_Style)
+		Date_Style = 0;
 }
 
 function SendSettings(){
@@ -166,6 +171,7 @@ function SendSettings(){
 							'NIGHT_INVERT_DISPLAY'    : parseInt(Night_Invert_Display),
 							'NIGHT_OFFLINE'           : parseInt(Night_Offline),
 							'TEXT_SIZE'               : parseInt(Text_Size),
+							'DATE_STYLE'              : parseInt(Date_Style),
 							}); 
 }
 
@@ -173,7 +179,8 @@ function Update_Info(){
 	var CurrentWeather = " ";
 	var response = " ";
 	if (Hide_Weather == 0){
-		response = HTTPGET("http://api.openweathermap.org/data/2.5/weather?q=" + Location);
+		response = HTTPGET("http://api.openweathermap.org/data/2.5/weather?q=" + Location + "&APPID=ba08e74fcb7da39750070a88a2ab8a9b");
+		
 		var json = JSON.parse(response);
 		var temperature = (json.main.temp - 273.15);
 	
@@ -267,7 +274,7 @@ function Update_Info(){
 Pebble.addEventListener("showConfiguration",
   function(e) {
     try {
-		Pebble.openURL("http://grakovne.org/pebble/SmartFace/AppConfig_3_0.php?Location=" + Location + "&Info_Updates_Frequency=" + Info_Updates_Frequency + "&Hourly_Vibe=" + Hourly_Vibe + "&BT_Vibe=" + BT_Vibe + "&Add_String=" + Add_String + "&Language=" + Language + "&Inverted=" + Inverted + "&Hide_Weather=" + Hide_Weather + "&Charge_Vibe=" + Charge_Vibe + "&Hide_Battery=" + Hide_Battery + "&Hide_BT=" + Hide_BT + "&Temp_Units=" + Temp_Units + "&Night_Mode=" + Night_Mode + "&Night_Start=" + Night_Hours_On + ":" + Night_Mins_On + "&Night_Finish=" + Night_Hours_Off + ":" + Night_Mins_Off + "&Shake_update=" + Shake_Update + "&Night_Silent=" + Night_Silent + "&Night_Invert_Display=" + Night_Invert_Display + "&Night_Offline=" + Night_Offline + "&Custom_Text=" + Custom_Text + "&Text_Size=" + Text_Size);
+		Pebble.openURL("http://grakovne.org/pebble/SmartFace/AppConfig_3_0.php?Location=" + Location + "&Info_Updates_Frequency=" + Info_Updates_Frequency + "&Hourly_Vibe=" + Hourly_Vibe + "&BT_Vibe=" + BT_Vibe + "&Add_String=" + Add_String + "&Language=" + Language + "&Inverted=" + Inverted + "&Hide_Weather=" + Hide_Weather + "&Charge_Vibe=" + Charge_Vibe + "&Hide_Battery=" + Hide_Battery + "&Hide_BT=" + Hide_BT + "&Temp_Units=" + Temp_Units + "&Night_Mode=" + Night_Mode + "&Night_Start=" + Night_Hours_On + ":" + Night_Mins_On + "&Night_Finish=" + Night_Hours_Off + ":" + Night_Mins_Off + "&Shake_update=" + Shake_Update + "&Night_Silent=" + Night_Silent + "&Night_Invert_Display=" + Night_Invert_Display + "&Night_Offline=" + Night_Offline + "&Custom_Text=" + Custom_Text + "&Text_Size=" + Text_Size + "&Date_Style=" + Date_Style);
 		}
 	catch (err) {
 		Pebble.openURL("http://grakovne.org/pebble/SmartFace/AppConfig_3_0.php");
@@ -316,6 +323,8 @@ Pebble.addEventListener("webviewclosed",
 	localStorage.setItem(Text_Size_key, configuration.Text_Size);
 	
 	localStorage.setItem(Night_Invert_Display_key, configuration.Night_Invert_Display);
+	  
+	localStorage.setItem(Date_Style_key, configuration.Date_Style);
 	
     localStorage.setItem(Night_Hours_On_key, configuration.Night_Start.split(":")[0]);
 	  

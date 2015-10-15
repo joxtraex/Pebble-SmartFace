@@ -31,6 +31,7 @@
 #define Night_Invert_Display_key    18
 #define Night_Offline_key           19
 #define Text_Size_key               20
+#define Date_Style_key              21
 	
 Window *MainWindow;
 TextLayer *Time_Text;
@@ -62,7 +63,7 @@ struct tm *current_time;
 AppTimer* IsReceiving;
 
 static char Time[] = "00:00";
-static char Date[] = "26.06.1996";
+static char Date[32];
 
 
 static inline void Process_Received_Data(DictionaryIterator *iter, void *context);
@@ -117,6 +118,37 @@ static const char DayNames[2][7][24] = {
 	}
 };
 
+static const char MonthNames[2][12][24] = {
+	{
+		"JANUARY",
+		"FEBRUARY",
+		"MARCH",
+		"APRIL",
+		"MAY",
+		"JUNE",
+		"JULE",
+		"AUGUST",
+		"SEPTEMBER",
+		"OCTOBER",
+		"NOVEMBER",
+		"DECEMBER"
+	},
+	{
+		"ЯНВАРЯ",
+		"ФЕВРАЛЯ",
+		"МАРТА",
+		"АПРЕЛЯ",
+		"МАЯ",
+		"ИЮНЯ",
+		"АВГУСТА",
+		"СЕНТЯБРЯ",
+		"ОКТЯБРЯ",
+		"НОЯБРЯ",
+		"ДЕКАБРЯ"
+		
+	}
+};
+
 static const char OfflineNames[2][16] = {
 	"OFFLINE",
 	"HET CETИ"
@@ -153,6 +185,7 @@ enum {
 	NIGHT_INVERT_DISPLAY     = 16,
 	NIGHT_OFFLINE            = 17,
 	TEXT_SIZE                = 18,
+	DATE_STYLE               = 19,
 };
 
 static struct {
@@ -173,6 +206,7 @@ static struct {
 	bool Night_Invert_Display;
 	bool Night_Offline;
 	bool Text_Size;
+	bool Date_Style;
 	int Night_Start;
 	int Night_Finish;
 } Settings;
@@ -337,6 +371,15 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 			 
 			 	break;
 			 
+			 case DATE_STYLE:
+			 	
+			 	if (value < 2){
+					Settings.Date_Style = value;
+					persist_write_bool(Date_Style_key, Settings.Date_Style);
+				}
+			 
+			 	break;
+			 
 			 case HIDE_BATTERY:
 			 	if (value < 2){
 					Settings.Hide_Battery = value;
@@ -474,6 +517,11 @@ static inline void ReadSettings(){
 		Settings.Night_Offline = persist_read_int(Night_Offline_key);
 	else
 		Settings.Night_Offline = 1;
+	
+	if (persist_exists(Date_Style_key)) 
+		Settings.Date_Style = persist_read_int(Date_Style_key);
+	else
+		Settings.Date_Style = 0;
 	
 	if (persist_exists(Text_Size_key)) 
 		Settings.Text_Size = persist_read_int(Text_Size_key);
@@ -616,7 +664,11 @@ static inline void UpdateTime(struct tm* CurrentTime, TimeUnits units_changed){
 }
 
 static inline void UpdateDate(struct tm* CurrentTime, TimeUnits units_changed){
-	strftime(Date, sizeof(Date), "%d.%m.%Y", CurrentTime);
+	if (Settings.Date_Style)
+		snprintf(Date, sizeof(Date), "%02d %s", CurrentTime->tm_mday, MonthNames[Settings.Language][CurrentTime->tm_mon]);
+	else
+		snprintf(Date, sizeof(Date), "%02d.%02d.%d", CurrentTime->tm_mday, CurrentTime->tm_mon+1, CurrentTime->tm_year+1900);
+
 	text_layer_set_text(Date_Text, Date);
 	text_layer_set_text(Week_Text, DayNames[Settings.Language][CurrentTime->tm_wday]);
 }

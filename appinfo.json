@@ -4,6 +4,7 @@
         "BT_VIBE": 2,
         "CHARGE_VIBE": 7,
         "CURRENT_WEATHER": 0,
+        "DATE_STYLE": 19,
         "HIDE_BATTERY": 8,
         "HIDE_BT": 9,
         "HIDE_WEATHER": 10,
@@ -101,9 +102,21 @@
                 "type": "png"
             },
             {
+                "characterRegex": "[0-9%OKLSHET]",
+                "file": "fonts/imagine_font.ttf",
+                "name": "IMAGINE_TIME_12",
+                "type": "font"
+            },
+            {
+                "characterRegex": "[ -~ \u0410-\u042f \u0430-\u044f]",
+                "file": "fonts/imagine_font.ttf",
+                "name": "IMAGINE_TIME_17",
+                "type": "font"
+            },
+            {
                 "characterRegex": "[ 0-9:]",
                 "file": "fonts/imagine_font.ttf",
-                "name": "IMAGINE_TIME_43",
+                "name": "IMAGINE_TIME_37",
                 "type": "font"
             },
             {
@@ -115,19 +128,7 @@
             {
                 "characterRegex": "[ 0-9:]",
                 "file": "fonts/imagine_font.ttf",
-                "name": "IMAGINE_TIME_37",
-                "type": "font"
-            },
-            {
-                "characterRegex": "[0-9.SUNDAYMOTEWHRFIBCKP\u042c\u041f\u0414\u041b\u0418\u0427\u0415\u0413\u042f\u0426\u0411]",
-                "file": "fonts/imagine_font.ttf",
-                "name": "IMAGINE_TIME_17",
-                "type": "font"
-            },
-            {
-                "characterRegex": "[0-9%OKLSHET]",
-                "file": "fonts/imagine_font.ttf",
-                "name": "IMAGINE_TIME_12",
+                "name": "IMAGINE_TIME_43",
                 "type": "font"
             },
             {
@@ -158,7 +159,7 @@
         "aplite"
     ],
     "uuid": "55ff601c-2ac2-482d-ba73-342f77bcd648",
-    "versionLabel": "3.0",
+    "versionLabel": "3.1",
     "watchapp": {
         "watchface": true
     }
