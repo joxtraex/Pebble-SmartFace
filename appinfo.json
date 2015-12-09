@@ -24,8 +24,8 @@
     "capabilities": [
         "configurable"
     ],
-    "companyName": "grakovne@yandex.ru",
-    "longName": "SmartFace",
+    "companyName": "test2",
+    "longName": "SmartFace2",
     "projectType": "native",
     "resources": {
         "media": [
@@ -114,9 +114,9 @@
                 "type": "font"
             },
             {
-                "characterRegex": "[ 0-9:]",
+                "characterRegex": "[ 0-9:APM]",
                 "file": "fonts/imagine_font.ttf",
-                "name": "IMAGINE_TIME_37",
+                "name": "IMAGINE_TIME_30",
                 "type": "font"
             },
             {
@@ -154,11 +154,12 @@
         ]
     },
     "sdkVersion": "3",
-    "shortName": "SmartFace",
+    "shortName": "SmartFace2",
     "targetPlatforms": [
-        "aplite"
+        "aplite",
+        "basalt"
     ],
-    "uuid": "55ff601c-2ac2-482d-ba73-342f77bcd648",
+    "uuid": "55ff601c-2ac2-482d-ba73-342f77bcd600",
     "versionLabel": "3.1",
     "watchapp": {
         "watchface": true

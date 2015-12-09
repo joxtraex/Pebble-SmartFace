@@ -56,13 +56,14 @@ GFont CWeather_Font;
 static bool JustRun_Flag       = 1;
 static bool IsConnected_Flag   = 1;
 static bool IsNight_Flag       = 0;
+static bool isAmPmEnabled	   = 1;
 
 time_t now;
 struct tm *current_time;
 
 AppTimer* IsReceiving;
 
-static char Time[] = "00:00";
+static char Time[] = "00:00AM";
 static char Date[32];
 
 
@@ -206,7 +207,7 @@ static struct {
 	bool Night_Invert_Display;
 	bool Night_Offline;
 	bool Text_Size;
-	bool Date_Style;
+	int Date_Style;
 	int Night_Start;
 	int Night_Finish;
 } Settings;
@@ -373,9 +374,9 @@ static void Process_Received_Data(DictionaryIterator *iter, void *context){
 			 
 			 case DATE_STYLE:
 			 	
-			 	if (value < 2){
+			 	if (value > -1){
 					Settings.Date_Style = value;
-					persist_write_bool(Date_Style_key, Settings.Date_Style);
+					persist_write_int(Date_Style_key, Settings.Date_Style);
 				}
 			 
 			 	break;
@@ -584,6 +585,8 @@ static inline void UpdateConnection(bool Connected){
 	bitmap_layer_set_bitmap(BT_Image, BT);
 	
 	text_layer_set_text(Connection_Text, BTNames[Settings.Language][Connected]);
+	updateBluetoothStateTextColor(Connected);
+
 }
 
 static inline void UpdateBattery(BatteryChargeState State){
@@ -647,7 +650,13 @@ static inline void UpdateTime(struct tm* CurrentTime, TimeUnits units_changed){
 		Not_Inverted = 1;
 	}
 	
-	strftime(Time, sizeof(Time), "%H:%M", CurrentTime);
+	char* Time_Format = isAmPmEnabled ? "%I:%M%p" : "%I:%M";
+
+	strftime(Time, sizeof(Time), Time_Format, CurrentTime);
+
+	// APP_LOG(APP_LOG_LEVEL_DEBUG, "UpdateTime() | : ",Time);
+	APP_LOG(APP_LOG_LEVEL_DEBUG, "UpdateTime() | : time[5]: %c",Time[5]);
+	// strftime(Time, sizeof(Time), "%I:%M%p", CurrentTime);
 	text_layer_set_text(Time_Text, Time);
 	
 	if ( (!(CurrentTime -> tm_hour)) && (!(CurrentTime -> tm_min)) ){
@@ -664,10 +673,18 @@ static inline void UpdateTime(struct tm* CurrentTime, TimeUnits units_changed){
 }
 
 static inline void UpdateDate(struct tm* CurrentTime, TimeUnits units_changed){
-	if (Settings.Date_Style)
-		snprintf(Date, sizeof(Date), "%02d %s", CurrentTime->tm_mday, MonthNames[Settings.Language][CurrentTime->tm_mon]);
-	else
-		snprintf(Date, sizeof(Date), "%02d.%02d.%d", CurrentTime->tm_mday, CurrentTime->tm_mon+1, CurrentTime->tm_year+1900);
+	APP_LOG(APP_LOG_LEVEL_DEBUG, "update date: %d",Settings.Date_Style);
+	// switch(Settings.Date_Style) {
+	// 	case 0:
+	// 		snprintf(Date, sizeof(Date), "%02d %s", CurrentTime->tm_mday, MonthNames[Settings.Language][CurrentTime->tm_mon+1]);
+	// 		break;
+	// 	case 1:
+	// 		snprintf(Date, sizeof(Date), "%02d.%02d.%d", CurrentTime->tm_mday, CurrentTime->tm_mon+1,  CurrentTime->tm_year+1900);
+	// 		break;
+	// 	case 2:
+			snprintf(Date, sizeof(Date), "%02d/%02d/%d", CurrentTime->tm_mon+1, CurrentTime->tm_mday,  CurrentTime->tm_year+1900);
+	// 		break;
+	// }
 
 	text_layer_set_text(Date_Text, Date);
 	text_layer_set_text(Week_Text, DayNames[Settings.Language][CurrentTime->tm_wday]);

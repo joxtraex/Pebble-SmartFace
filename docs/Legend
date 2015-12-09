@@ -1,0 +1,48 @@
+Legend - Normal
+
+Blue	- Bluetooth Icon
+	0, 2, 16, 16
+
+Green 	- Battery Icon
+	127, 2, 16, 16
+
+Yellow	- Battery % text
+	16, 2, 112, 16
+
+Purple	- Bluetooth Connection state
+	17, 2, 124, 16
+
+Red	- Week Day Text
+	N: 0, 100, 145, 30
+	L: 0, 29, 145, 30
+
+Orange	- Time Text
+	N: 0, 46, 145, 50
+	L: 2, 38, 145, 50
+
+Light Blue - Date Text
+	N: 0, relativeY(TimeText)+15, 145, 25
+	L: 0, 90, 145, 25
+
+Green	- Weather Text
+	N: 0, 147, 145, 25
+
+Light Red - Additional text
+	N: 0, 129, 145, 18
+
+
+
+
+
+	
+
+
+
+
+
+
+
+
+
+	
+
