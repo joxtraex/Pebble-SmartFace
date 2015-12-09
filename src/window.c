@@ -50,6 +50,11 @@ void SetColors (bool Invert){
 	
 }
 
+void updateBluetoothStateTextColor(bool connected) {
+	text_layer_set_text_color(Connection_Text, 
+		connected ? COLOR_FALLBACK(GColorBlack, ForegroundColor) : COLOR_FALLBACK(GColorRed, ForegroundColor));
+}
+
 void BuildWindow(bool Text_Size){
 	MainWindow = window_create();
 	
@@ -82,42 +87,46 @@ void BuildWindow(bool Text_Size){
 	
 	/*Week Day Text*/
 	Date_Font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_IMAGINE_TIME_17));
-	if (Text_Size)
+	if (Text_Size) // large font
 		Week_Text = text_layer_create(GRect(0, 29, 145, 30)); //20 40
 	else
-    	Week_Text = text_layer_create(GRect(0, 34, 145, 30)); //20 40
+    	Week_Text = text_layer_create(GRect(0, 100, 145, 30)); //20 40
 	text_layer_set_text_alignment(Week_Text, GTextAlignmentCenter);
 	text_layer_set_font(Week_Text, Date_Font);
-	text_layer_set_background_color(Week_Text, GColorClear);
+	text_layer_set_background_color(Week_Text, DEBUG == 0 ? GColorClear : COLOR_FALLBACK(GColorGreen, GColorClear));
 	layer_add_child(window_get_root_layer(MainWindow), text_layer_get_layer(Week_Text));
 	
 	/*Time Text*/
-	
 	if (Text_Size){	// large font 
 		Time_Font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_IMAGINE_BIG_43));
   		Time_Text = text_layer_create(GRect(2, 38, 145, 50)); //34
 		text_layer_set_text_alignment(Time_Text, GTextAlignmentCenter);
 		text_layer_set_font(Time_Text, Time_Font);
-		text_layer_set_background_color(Time_Text, GColorClear);
 		layer_add_child(window_get_root_layer(MainWindow), text_layer_get_layer(Time_Text));
 	}
 	
 	else {
-		Time_Font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_IMAGINE_TIME_37));
+		Time_Font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_IMAGINE_TIME_30));
   		Time_Text = text_layer_create(GRect(0, 46, 145, 50)); //34
 		text_layer_set_text_alignment(Time_Text, GTextAlignmentCenter);
 		text_layer_set_font(Time_Text, Time_Font);
-		text_layer_set_background_color(Time_Text, GColorClear);
 		layer_add_child(window_get_root_layer(MainWindow), text_layer_get_layer(Time_Text));
 	}
-	/*Date Text*/
+	text_layer_set_background_color(Time_Text, DEBUG == 0 ? GColorClear : COLOR_FALLBACK(GColorRed, GColorClear));
+	/*
+		Date Text
+		Spacing of this layer is relative to the Week_Text layer (relative y) + 15)
+	*/
 	if (Text_Size)
 		Date_Text = text_layer_create(GRect(0, 90, 145, 25)); //75  95
-	else
-		Date_Text = text_layer_create(GRect(0, 88, 145, 25)); //75  95
+	else {
+		GRect relativeRect = layer_get_frame((Layer *) Week_Text);
+		int16_t relativeY = relativeRect.origin.y;
+		Date_Text = text_layer_create(GRect(0, relativeY+15, 145, 25)); //75  95
+	}
 	text_layer_set_text_alignment(Date_Text, GTextAlignmentCenter);
 	text_layer_set_font(Date_Text, Date_Font);
-	text_layer_set_background_color(Date_Text, GColorClear);
+	text_layer_set_background_color(Date_Text, DEBUG == 0 ? GColorClear : COLOR_FALLBACK(GColorBlue, GColorClear));
 	layer_add_child(window_get_root_layer(MainWindow), text_layer_get_layer(Date_Text));
 	
 	/*Current weather Text*/
@@ -125,7 +134,7 @@ void BuildWindow(bool Text_Size){
 	CWeather_Text = text_layer_create(GRect(0, 147, 145, 25)); //105
 	text_layer_set_text_alignment(CWeather_Text, GTextAlignmentCenter);
 	text_layer_set_font(CWeather_Text, CWeather_Font);
-	text_layer_set_background_color(CWeather_Text, GColorClear);
+	text_layer_set_background_color(CWeather_Text, DEBUG == 0 ? GColorClear : COLOR_FALLBACK(GColorYellow, GColorClear));
 	layer_add_child(window_get_root_layer(MainWindow), text_layer_get_layer(CWeather_Text));
 
 	/*Addiditonal String*/

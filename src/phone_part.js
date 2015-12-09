@@ -97,9 +97,9 @@ function ReadSettings(){
 	Custom_Text = localStorage.getItem(Custom_Text_key);
 	Text_Size = localStorage.getItem(Text_Size_key);
 	Date_Style = localStorage.getItem(Date_Style_key);
-	
+	console.log("ReadSettings() | Date_Style: %d"+" | obj: %s",Date_Style, Date_Style);
 	if (!Location)
-		Location = "London";
+		Location = "Sunnyvale, ca";
 	if (!Hourly_Vibe)
 		Hourly_Vibe = 1;
 	if (!BT_Vibe)
@@ -146,6 +146,9 @@ function ReadSettings(){
 		Text_Size = 0;
 	if (!Date_Style)
 		Date_Style = 0;
+	else {
+		console.log("read settings() | Date_Style: ", Date_Style);
+	}
 }
 
 function SendSettings(){
@@ -182,6 +185,8 @@ function Update_Info(){
 		response = HTTPGET("http://api.openweathermap.org/data/2.5/weather?q=" + Location + "&APPID=ba08e74fcb7da39750070a88a2ab8a9b");
 		
 		var json = JSON.parse(response);
+		console.log("Update_Info() ");
+		console.log(response);
 		var temperature = (json.main.temp - 273.15);
 	
 		/*Just adding "+" sign for good temperature*/
@@ -274,10 +279,10 @@ function Update_Info(){
 Pebble.addEventListener("showConfiguration",
   function(e) {
     try {
-		Pebble.openURL("http://grakovne.org/pebble/SmartFace/AppConfig_3_0.php?Location=" + Location + "&Info_Updates_Frequency=" + Info_Updates_Frequency + "&Hourly_Vibe=" + Hourly_Vibe + "&BT_Vibe=" + BT_Vibe + "&Add_String=" + Add_String + "&Language=" + Language + "&Inverted=" + Inverted + "&Hide_Weather=" + Hide_Weather + "&Charge_Vibe=" + Charge_Vibe + "&Hide_Battery=" + Hide_Battery + "&Hide_BT=" + Hide_BT + "&Temp_Units=" + Temp_Units + "&Night_Mode=" + Night_Mode + "&Night_Start=" + Night_Hours_On + ":" + Night_Mins_On + "&Night_Finish=" + Night_Hours_Off + ":" + Night_Mins_Off + "&Shake_update=" + Shake_Update + "&Night_Silent=" + Night_Silent + "&Night_Invert_Display=" + Night_Invert_Display + "&Night_Offline=" + Night_Offline + "&Custom_Text=" + Custom_Text + "&Text_Size=" + Text_Size + "&Date_Style=" + Date_Style);
+		Pebble.openURL("http://cisco1987.phpnet.us/SmartFace-ext-Configurations.html?Location=" + Location + "&Info_Updates_Frequency=" + Info_Updates_Frequency + "&Hourly_Vibe=" + Hourly_Vibe + "&BT_Vibe=" + BT_Vibe + "&Add_String=" + Add_String + "&Language=" + Language + "&Inverted=" + Inverted + "&Hide_Weather=" + Hide_Weather + "&Charge_Vibe=" + Charge_Vibe + "&Hide_Battery=" + Hide_Battery + "&Hide_BT=" + Hide_BT + "&Temp_Units=" + Temp_Units + "&Night_Mode=" + Night_Mode + "&Night_Start=" + Night_Hours_On + ":" + Night_Mins_On + "&Night_Finish=" + Night_Hours_Off + ":" + Night_Mins_Off + "&Shake_update=" + Shake_Update + "&Night_Silent=" + Night_Silent + "&Night_Invert_Display=" + Night_Invert_Display + "&Night_Offline=" + Night_Offline + "&Custom_Text=" + Custom_Text + "&Text_Size=" + Text_Size + "&Date_Style=" + Date_Style);
 		}
 	catch (err) {
-		Pebble.openURL("http://grakovne.org/pebble/SmartFace/AppConfig_3_0.php");
+		Pebble.openURL("http://cisco1987.phpnet.us/SmartFace-ext-Configurations.html");
 		}
 	}
 );
@@ -285,7 +290,8 @@ Pebble.addEventListener("showConfiguration",
 Pebble.addEventListener("webviewclosed",
   function(e) {
     var configuration = JSON.parse(decodeURIComponent(e.response));
-	
+    console.log("webview closed");
+	console.log(e.response);
 	localStorage.setItem(Location_key, configuration.Location);
 	
 	localStorage.setItem(Hourly_Vibe_key, configuration.Hourly_Vibe);
@@ -323,8 +329,8 @@ Pebble.addEventListener("webviewclosed",
 	localStorage.setItem(Text_Size_key, configuration.Text_Size);
 	
 	localStorage.setItem(Night_Invert_Display_key, configuration.Night_Invert_Display);
-	  
-	localStorage.setItem(Date_Style_key, configuration.Date_Style);
+	
+	localStorage.setItem(Date_Style_key, configuration);
 	
     localStorage.setItem(Night_Hours_On_key, configuration.Night_Start.split(":")[0]);
 	  
